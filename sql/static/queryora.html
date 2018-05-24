@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row clearfix">
+        <form action="/queryora/" method="POST" id="queryOraForm">
+            <div class="col-md-8 column">
+                <textarea id="sql_content" name="sql_content" value="{% if sql_content|length > 0 %}{{sql_content}} {% endif %}" class="form-control sql-textarea sql-query-textarea" data-name="SQL内容" placeholder="请在此提交单条SQL，请以分号结尾。例如：select content from user.t1 where id=1; " rows=20 required>{% if sql_content|length > 0 %}{{sql_content}} {% endif %}</textarea>
+            </div>
+            <input type="hidden" name="sql_query" id="real_sql_content">
+                </select>
+            <div class="col-md-4 column">
+                <div class="form-group">
+                    请选择实例
+					<select name="cluster_name" class="normal-select" >
+                    {% for cluster_name,dbs in dictAllClusterSchema.items %}
+					<option value="{{ cluster_name }}" {% if clusterName == cluster_name %}selected{% endif %} >{{ cluster_name }}</option>
+                    {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <input type="button" class="btn btn-info" value="执行" id="execSqlBtn"/>
+                    <button type="reset" class="btn btn-warning">清空选项</button>
+                </div>
+            </div> 
+        </form>
+    </div>
+
+    <div class="row clearfix">
+        <div class="col-md-12 column">
+            {% if query_result_p|length > 0%}
+            查询结果 : 
+            {% endif%}
+            <div class="query-sql-wrap">
+                <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                {% for i in header_list %}
+                                <th>{{i}}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in query_result_p %}
+                            <tr>
+                                {% for j in i %}
+                                    <td class="td-need-pre break-normal">{{j|default_if_none:""}}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+            </div>
+            
+            <ul class="pagination" style="display:inline-block;" id="query_ora_pagination">
+                {% if query_result_p.has_previous %}
+                    <li>
+                        <a data-href="{{ query_result_p.previous_page_number }}">前一页</a>
+                    </li>
+                {% endif %}
+                
+                {% for p in page_range %}
+                    {% ifequal p query_result_p.number %}
+                    <li class="active">
+                        <span>{{p}}</span>
+                    </li>
+                    {% else %}
+                    <li class="{% ifequal p page  %}active {% endifequal %}">
+                        <a data-href="{{p}}" title="第{{p}}页">{{p}}</a>
+                    </li>
+                    {% endifequal %}
+                {% endfor %}
+                    
+                {% if query_result_p.has_next %}
+                <li id="last_page">
+                    <a data-href="{{ query_result_p.next_page_number }}" title="下一页">下一页</a> 
+                </li>
+                {% endif %}
+             </ul>
+             <form action="/queryora/" method="POST" id="query_ora_form">
+                <input type="hidden" name="sql_content" value="{{sql_content}}">
+                <input type="hidden" name="cluster_name" value="{{clusterName}}">
+                <input type="hidden" name="page" value="" id="pageNo">
+             </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

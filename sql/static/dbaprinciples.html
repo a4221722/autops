@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h4>请认真阅读以下说明：</h4>
+<body bgcolor=#f5f5ff>
+<pre>
+<font size=4 face=宋体>
+<table width="100%"　border="0" cellspacing="0" cellpadding="0" style="TABLE-LAYOUT: fixed; WORD-BREAK: break-all">
+<tr>
+<td style="WORD-BREAK: break-all; WORD-WRAP: break-word ;text-align: left;">
+请使用chrome浏览器访问该平台
+. 变更申请页面: 
+	1. 支持insert ... values, insert ... select 和 update ... set三种语法，update语句必须带有where条件
+	2. sql提交后会估算影响行数，作为审核参考，影响行数较大的会重点审核
+	3. sql提交框里支持输入多个sql，用";"隔开
+	4. 如果一个工单包含多条语句,自动执行时,只有所有语句全部执行成功才会commit，否则会全部回滚。
+. 查询页面:
+	1.支持select语句
+	2.查看表结构:desc drawcenter.t1
+	3.查看索引:show index from drawcenter.t1
+	4.限制返回的总行数，仅作为业务数据校验使用
+. 语句中的表名必须带有schema前缀，比如写成insert into drawcenter.t1(id) values (1); 而不是insert into t1(id) values (1);
+. comment语句解析会报错，dba确认无误后也可以自动或手工执行
+
+小优化点：
+(已解决)1.Sql查询结果加滚动条 优先级：10 
+(已解决)2.同步数据字典可选实例 优先级：9
+(已解决)3.Oracle字典改为，选择实例发起查询后，再获取数据,这块重用2中。优先级：10
+(已解决)4.工单的审核通过自动执行和终止流程增加确认按钮 优先级: 10
+(已解决)5.sql查询选中
+(已解决)6.详情页报错标红
+(已解决)7.变更申请，修改时不要填充所选实例
+(已解决)8.选择文件的提交按钮去掉
+
+大功能点：
+--1.Oracle字典做成可查看表结构 优先级：7
+2.增加用户申请/删除表权限工单，审核人审核权限工单 优先级：6
+3.同步ldap和字典数据可查看进度 优先级：8
+(h5页面，只能访问detail页面)4.接入oa审批/h5页面 优先级：8
+(已解决)5.考虑使用mysql? ora_tables和ora_tab_privs表查询优化
+(已解决)6.查询页面增加show index from语法支持 优先级：7
+7.ddl与dml分离
+</td>
+</tr>
+</table>
+</pre>
+</FONT>
+</body>
+{% endblock content %}

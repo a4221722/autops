@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<table class="table table-hover" id="data_sync_table">
+  <thead>
+    <tr>
+      <th>数据类型</th>
+      <th>上次操作时间</th>
+      <th>操作</th>
+      <th>状态</th>
+    </tr>
+  </thead>
+  <tbody>
+	<tr>
+		<td>LDAP用户</td>
+		<td>{{ optDict.LDAP用户_同步.0 }}</td>
+		<td>
+			<button type="button" id="btnSync" class="btn btn-primary">同步</button>
+		</td>
+		<td>{{ optDict.LDAP用户_同步.1 }}</td>
+	</tr>
+	<tr>
+		<td>数据字典</td>
+		<td>{{ optDict.数据字典_同步.0 }}</td>
+		<td>
+			<button type="button" class="btn btn-primary " {% if optDict.数据字典_同步.1  == '进行中' %}disabled{% endif %} data-role="sync_dict_btn" data-toggle="modal" data-target="#sync_dict_modal">同步</button>
+		</td>
+		<td>{{ optDict.数据字典_同步.1 }}</td>
+	</tr>
+	</tbody>
+</table>
+
+<table class="table table-hover" id="opt_info_table">
+  <thead>
+    <tr>
+      <th>id</th>
+      <th>数据类型</th>
+	  <th>操作类型</th>
+	  <th>创建时间</th>
+	  <th>更新时间</th>
+	  <th>结束时间</th>
+      <th>信息</th>
+      <th>状态</th>
+    </tr>
+  </thead>
+  <tbody>
+	{% for row in listOptInfo %}
+	<tr>
+			<td>{{row.id}}</td>
+			<td>{{row.data_type}}</td>
+			<td>{{row.opt_type}}</td>
+			<td>{{row.create_time}}</td>
+			<td>{{row.modify_time}}</td>
+			<td>{{row.finish_time|default_if_none:""}}</td>
+			<td>{{row.message}}</td>
+			<td>{{row.status}}</td>
+	</tr>
+		{% endfor %}
+	</tbody>
+</table>
+  <div class="modal fade" tabindex="-1" role="dialog" id="sync_dict_modal" aria-labelledby="roleModalLabel">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="dictModalLabel">同步</h4>
+        </div>
+        <div class="modal-body">
+          <div id="sync_dict_content">
+            <div class="form-group" id="cluster_name_block">
+              实例:
+              <div id="select_group">
+                <input type="radio" id="selectAll" name="selectBox" class="radios" data-select="true">全选
+                <input type="radio" id="oppselectAll" name="selectBox" class="radios" data-select="opps">反选
+                <input type="radio" id="unselectAll" name="selectBox" class="radios" data-select="">全不选
+              </div> 
+              <div id="table_select" style="padding-left: 20px;max-height:350px;overflow: auto;"></div>
+            </div>
+            <!-- <button type="button" class="btn btn-primary" id="add_role_totext">add</button> -->
+            <!-- <div name="role-content" id="role_content" style="padding:5px;margin:10px 0;width:540px;height:350px;overflow:auto;border:1px solid #ddd;"></div> -->
+            <button type="button" class="btn btn-primary" id="sync_dict_submit">同步</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+        </div>
+        </div>
+      </div>
+    </div>
+{% endblock content %}
