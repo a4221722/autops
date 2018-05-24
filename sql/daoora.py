@@ -366,7 +366,9 @@ class DaoOra(object):
 
     #执行查询语句
     def query(self,logon_user,clusterName,sqlContent):
+        self.getDbInfo(clusterName)
         self.getStInfo(clusterName)
+        oraLinkPr = self.primaryHost+':'+str(self.primaryPort)+'/'+self.primarySrv
         oraLink = self.standbyHost+':'+str(self.standbyPort)+'/'+self.standbySrv
         finalStatus = '执行结束'
         msg = ''
@@ -378,23 +380,25 @@ class DaoOra(object):
             msg = "不支持select for update操作"
         elif selPattern.match(sqlContent.lower()) or descPattern.match(sqlContent.lower()) or showIndPattern.match(sqlContent.lower()):
             try:
+                connPr = cx_Oracle.connect(self.primaryUser,self.primaryPassword,oraLinkPr,encoding=self.charset)
                 conn = cx_Oracle.connect(self.standbyUser,self.standbyPassword,oraLink,encoding=self.charset)
             except Exception as e:
                 finalStatus = '数据库连接异常'
                 msg = '数据库连接异常'
                 return finalStatus,msg,headerList,queryResult
             else:
+                crPr = connPr.cursor()
                 cr = conn.cursor()
             #select操作获取执行计划
             if selPattern.match(sqlContent.lower()):
                 epsql = 'explain plan for '+sqlContent
                 try:
-                    cr.execute(epsql)
+                    crPr.execute(epsql)
                 except Exception as e:
                     finalStatus = '解析失败'
                     msg = str(e)
                     return finalStatus,msg,headerList,queryResult
-                cr.execute("""select distinct a.object_owner,
+                crPr.execute("""select distinct a.object_owner,
                     (case
                       when a.object_type='TABLE' then
                        a.object_name
@@ -410,7 +414,7 @@ class DaoOra(object):
                        and a.object_owner = c.OWNER(+)
                        and a.object_name = d.index_name(+)
                        and a.object_owner = d.OWNER(+)""" )
-                eqResult = cr.fetchall()
+                eqResult = crPr.fetchall()
                 sqlContent = 'select * from ('+sqlContent+') where rownum <= 200'
             elif descPattern.match(sqlContent.lower()):
                 mt=descPattern.match(sqlContent.lower())

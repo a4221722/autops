@@ -83,8 +83,9 @@ function oraautoreview() {
 function renderClusterResult() {
 	$('#btn_search_cluster').on('click',function() {
 		var selected = $('#cluster_name_select').next().find('.filter-option').html();
-		console.log(selected)
 		// var content = window.cluster[selected];
+		var _this = $(this);
+		_this.prop('disabled',true)
 		$.getJSON('/oradict/',{cluster_name:selected},function(data) {
 			var content = data.listSchema;
 			var contentHTML ='';
@@ -92,6 +93,8 @@ function renderClusterResult() {
 				contentHTML += '<li class="cluster-group-item">'+item+'</li>'			
 			});
 			$('#cluster_result_content').html('<ul class="cluster-list-group" style="margin-top:20px;">'+ contentHTML +'</ul>')
+		}).always(function() {
+			_this.prop('disabled',false)
 		})
 		
 	})

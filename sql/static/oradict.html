@@ -21,14 +21,14 @@
     </div>
 </div> 
 <script>
-    window.cluster = {
-        {% for cluster_name,dbs in dictAllClusterSchema.items %}
-        '{{cluster_name}}':[
-            {% for db in dbs %}
-                '{{db}}'{% if not forloop.last %},{% endif%}
-            {% endfor %}
-        ],
-        {% endfor %}
-    }
+    // window.cluster = {
+    //     {% for cluster_name,dbs in dictAllClusterSchema.items %}
+    //     '{{cluster_name}}':[
+    //         {% for db in dbs %}
+    //             '{{db}}'{% if not forloop.last %},{% endif%}
+    //         {% endfor %}
+    //     ],
+    //     {% endfor %}
+    // }
 </script>
 {% endblock content %} 
