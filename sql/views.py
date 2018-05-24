@@ -81,10 +81,10 @@ def allworkflow(request):
         allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status=Const.workflowStatus['manreviewing'], review_man=loginUser) | Q(status=Const.workflowStatus['manreviewing'], review_man__contains='"' + loginUser + '"')).order_by('-create_time')
         #listWorkflow = workflow.objects.filter(Q(status=Const.workflowStatus['manreviewing'], review_man=loginUser) | Q(status=Const.workflowStatus['manreviewing'], review_man__contains='"' + loginUser + '"')).order_by('-create_time')[offset:limit]
     elif navStatus == 'finish' and role == '审核人':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status__in(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'])).order_by('-create_time')
+        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'])).order_by('-create_time')
         #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['finish']).order_by('-create_time')[offset:limit]
     elif navStatus == 'finish' and role == '工程师':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['finish'], engineer=loginUser).order_by('-create_time')
+        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish']), engineer=loginUser).order_by('-create_time')
         #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['finish'], engineer=loginUser).order_by('-create_time')[offset:limit]
     elif navStatus == 'executing' and role == '审核人':
         allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['executing']).order_by('-create_time')

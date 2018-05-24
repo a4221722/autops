@@ -269,11 +269,11 @@
 						<input type="button" id="btnCancel" onclick="execute(event,this)" class="btn btn-default" data-loading-text="Loading..." value="终止流程" />
 					</form>
 				{% endif %}
-				-->
 				{% if workflowDetail.status == '人工终止流程' %}
 					{% csrf_token %}
 					<a type='button' id="btnEditSql" class='btn btn-warning' href="/editsql/?workflowid={{workflowDetail.id}}">重新修改</a>
 				{% endif %}
+				-->
 
 			{% endif %}
 
