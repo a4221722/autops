@@ -16,7 +16,8 @@ class ora_primary_configAdmin(admin.ModelAdmin):
     search_fields = ['id', 'cluster_name','primary_host','primary_port','primary_srv','primary_user','standby_host','standby_port','standby_srv','create_time', 'update_time']
 
 class workflowAdmin(admin.ModelAdmin):
-    list_display = ('id','workflow_name', 'engineer', 'review_man', 'create_time', 'finish_time', 'status', 'is_backup', 'review_content', 'cluster_name', 'reviewok_time', 'sql_content', 'execute_result')
+    list_per_page=5
+    list_display = ('id','workflow_name', 'engineer', 'review_man', 'create_time', 'finish_time', 'status',   'cluster_name', 'reviewok_time', 'sql_content',)
     search_fields = ['id','workflow_name', 'engineer', 'review_man', 'sql_content']
 
 #创建用户表单重新定义，继承自UserCreationForm

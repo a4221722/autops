@@ -321,6 +321,12 @@ function downloadSql() {
 		$('#createInvote').attr('href', 'data:' + mimeType  +  ';charset=utf-8,' + encodeURIComponent(elHtml));
 		document.getElementById('createInvote').click();
 	})
+	$('#download-msg-btn').on('click',function() {
+		var elHtml = $('#show_modal_msg_content').html().replace(/\n/g,'\r\n');
+		var mimeType =  'text/plain';
+		$('#createInvoteMsg').attr('href', 'data:' + mimeType  +  ';charset=utf-8,' + encodeURIComponent(elHtml));
+		document.getElementById('createInvoteMsg').click();
+	})
 }
 downloadSql();
 execSql();

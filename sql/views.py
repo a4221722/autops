@@ -5,6 +5,7 @@ import json
 import multiprocessing
 import math
 from collections import OrderedDict
+import pdb
 
 from django.db.models import Q
 from django.conf import settings
@@ -21,6 +22,7 @@ from .sendmail import MailSender
 from .aes_decryptor import Prpcrypt
 from .models import *
 from .getnow import getNow
+from .tasks import oraAutoReview
 
 daoora = DaoOra()
 mailSender = MailSender()
@@ -34,7 +36,7 @@ daoMap = {
     'mysql':'my_master_config'}
 
 def login(request):
-    if request.GET.get('originPath') is not None and re.match(r'editsql/$',request.GET.get('originPath')):
+    if request.GET.get('originPath') is not None and re.match(r'/detail/(?P<workflowId>[0-9]+)/$',request.GET.get('originPath')):
         origin_path = request.GET.get('originPath')
     else:
         origin_path = '/allworkflow/'
@@ -70,44 +72,22 @@ def allworkflow(request):
         
     #查询workflow model，根据pageNo和navStatus获取对应的内容
     role = loginUserOb.role
-    if navStatus == 'all' and role == '审核人':
-        #这句话等同于select * from sql_workflow order by create_time desc limit {offset, limit};
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').exclude(status=Const.workflowStatus['autoreviewwrong']).order_by('-create_time')
-        #listWorkflow = workflow.objects.exclude(status=Const.workflowStatus['autoreviewwrong']).order_by('-create_time')[offset:limit]
+    if navStatus == 'all' and (role == '审核人' or loginUser == 'admin'):
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').order_by('-create_time')
     elif navStatus == 'all' and role == '工程师':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(Q(engineer=loginUser) | Q(status=Const.workflowStatus['autoreviewwrong']), engineer=loginUser).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(Q(engineer=loginUser) | Q(status=Const.workflowStatus['autoreviewwrong']), engineer=loginUser).order_by('-create_time')[offset:limit]
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(engineer=loginUser).order_by('-create_time')
     elif navStatus == 'waitingforme':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status=Const.workflowStatus['manreviewing'], review_man=loginUser) | Q(status=Const.workflowStatus['manreviewing'], review_man__contains='"' + loginUser + '"')).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(Q(status=Const.workflowStatus['manreviewing'], review_man=loginUser) | Q(status=Const.workflowStatus['manreviewing'], review_man__contains='"' + loginUser + '"')).order_by('-create_time')[offset:limit]
-    elif navStatus == 'finish' and role == '审核人':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'])).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['finish']).order_by('-create_time')[offset:limit]
-    elif navStatus == 'finish' and role == '工程师':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish']), engineer=loginUser).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['finish'], engineer=loginUser).order_by('-create_time')[offset:limit]
-    elif navStatus == 'executing' and role == '审核人':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['executing']).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['executing']).order_by('-create_time')[offset:limit]
-    elif navStatus == 'executing' and role == '工程师':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['executing'], engineer=loginUser).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['executing'], engineer=loginUser).order_by('-create_time')[offset:limit]
-    elif navStatus == 'abort' and role == '审核人':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['abort']).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['abort']).order_by('-create_time')[offset:limit]
-    elif navStatus == 'abort' and role == '工程师':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['abort'], engineer=loginUser).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['abort'], engineer=loginUser).order_by('-create_time')[offset:limit]
-    elif navStatus == 'autoreviewwrong' and role == '审核人':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['autoreviewwrong']).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['autoreviewwrong']).order_by('-create_time')[offset:limit]
-    elif navStatus == 'autoreviewwrong' and role == '工程师':
-        allFlow = workflow.objects.values('id','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus['autoreviewwrong'], engineer=loginUser).order_by('-create_time')
-        #listWorkflow = workflow.objects.filter(status=Const.workflowStatus['autoreviewwrong'], engineer=loginUser).order_by('-create_time')[offset:limit]
-    elif loginUser == 'admin' and navStatus == 'all':
-        allFlow = workflow.objects.all().order_by('-create_time')
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man=loginUser) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
+    elif (role == '审核人' or loginUser == 'admin') and navStatus == 'finish':
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept'])).order_by('-create_time')
+    elif role == '工程师':
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']),engineer=loginUser).order_by('-create_time')
+    elif role == '审核人' or loginUser == 'admin':
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus[navStatus]).order_by('-create_time')
+    elif role == '工程师':
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status=Const.workflowStatus[navStatus],engineer=loginUser).order_by('-create_time')
     else:
-        context = {'errMsg': '传入的navStatus参数有误！'}
+        context = {'errMsg': '传入参数有误！'}
         return render(request, 'error.html', context)
     pages = math.ceil(len(allFlow)/PAGE_LIMIT)
     #参数检查
@@ -134,6 +114,9 @@ def submitSqlOra(request,workflowId=None):
         sql_content = workflowDetail.sql_content
         workflow_name = workflowDetail.workflow_name
         cluster_name = workflowDetail.cluster_name.split(',')
+        message = workflowDetail.message
+        reason = workflowDetail.reason
+        data_change_type = workflowDetail.data_change_type
 
     primaries = ora_primary_config.objects.all().order_by('cluster_name')
     if len(primaries) == 0:
@@ -168,7 +151,7 @@ def submitSqlOra(request,workflowId=None):
        return render(request, 'error.html', context)
     listAllReviewMen = [user.display for user in reviewMen]
     if workflowId:
-        context = {'currentMenu':'submitsqlora', 'dictAllClusterSchema':dictAllClusterSchema, 'reviewMen':listAllReviewMen,'workflowid':workflowId,'sql_content':sql_content,'workflow_name':workflow_name }
+        context = {'currentMenu':'submitsqlora', 'dictAllClusterSchema':dictAllClusterSchema, 'reviewMen':listAllReviewMen,'workflowid':workflowId,'sql_content':sql_content,'workflow_name':workflow_name,'message':message,'reason':reason,'data_change_type':data_change_type}
     else:
         context = {'currentMenu':'submitsqlora', 'dictAllClusterSchema':dictAllClusterSchema, 'reviewMen':listAllReviewMen}
     return render(request, 'submitSqlOra.html', context)
@@ -180,9 +163,9 @@ def _mapReviewMan(review_man):
     listUsername = [user.username for user in usersList]
     return listUsername[0]
 
-
-#使用explain plan来检测SQL语法语义
-def oraautoreview(request):
+#判断工单类型，做相应处理
+def workflowSubmit(request):
+    dataChangeType = request.POST.get('data_change_type')
     workflowid = request.POST.get('workflowid')
     sqlContent = request.POST['sql_content']
     workflowName = request.POST['workflow_name']
@@ -190,11 +173,22 @@ def oraautoreview(request):
     isBackup = request.POST['is_backup']
     reviewMan = request.POST.get('review_man').split(',')
     listAllReviewMen = [_mapReviewMan(man) for man in reviewMan]
+    message = request.POST['message']
+    reason = request.POST['reason']
+    data_change_type = request.POST['data_change_type']
     #subReviewMen = _mapReviewMan(request.POST.get('sub_review_man', ''))
 
 
     #服务器端参数验证
-    if sqlContent is None or workflowName is None or clusterNameStr is None or isBackup is None or reviewMan is None:
+    if data_change_type in ('数据修订','数据初始化'):
+        if sqlContent is None:
+            context = {'errMsg': 'SQL内容不能为空'}
+            return render(request, 'error.html', context)
+    else:
+        if message is None:
+            context = {'errMsg': '备注不能为空'}
+            return render(request, 'error.html', context)
+    if reason is  None or workflowName is None or clusterNameStr is None or isBackup is None or reviewMan is None:
         context = {'errMsg': '页面提交参数可能为空'}
         return render(request, 'error.html', context)
 
@@ -220,27 +214,18 @@ def oraautoreview(request):
         primarySrv = listPrimaries[0].primary_srv
         primaryUser = listPrimaries[0].primary_user
         primaryPassword = prpCryptor.decrypt(listPrimaries[0].primary_password)
-
-    if sqlContent:
+    
+    #判断工单类型，转入相应的状态
+    if data_change_type in ('数据修订','数据初始化') and sqlContent:
         sqlContent = sqlContent.rstrip()
         if sqlContent[-1] != ";":
             context = {'errMsg': "SQL语句结尾没有以;结尾，请后退重新修改并提交！"}
             return render(request, 'error.html', context)
-        #使用explain plan方式解析语法
-        parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
 
-        if parseResult is None or len(parseResult)==0:
-            context = {'errMsg': '解析返回的结果集为空！可能是SQL语句有语法错误'}
-            return render(request, 'error.html', context)
-        #要把result转成JSON存进数据库里，方便SQL单子详细信息展示
-        jsonResult = json.dumps(parseResult)
+        workflowStatus = Const.workflowStatus['autoreviewing']
+    else:
+        workflowStatus = Const.workflowStatus['manexec']
 
-        #遍历result，看是否有任何自动审核不通过的地方，一旦有，则为自动审核不通过；没有的话，则为等待人工审核状态
-        workflowStatus = Const.workflowStatus['manreviewing']
-
-        for ret in parseResult:
-            if ret['stage'] == 'UNCHECKED':
-                workflowStatus = Const.workflowStatus['autoreviewwrong']
 
     #存进数据库里
     engineer = request.session.get('login_username', False)
@@ -254,34 +239,36 @@ def oraautoreview(request):
     Workflow.review_man = json.dumps(listAllReviewMen, ensure_ascii=False)
     Workflow.status = workflowStatus
     Workflow.is_backup = isBackup
-    Workflow.review_content = jsonResult
     Workflow.cluster_name = clusterNameStr
     Workflow.sql_content = sqlContent
     Workflow.execute_result = ''
+    Workflow.message = message
+    Workflow.reason = reason
+    Workflow.data_change_type = data_change_type
     Workflow.save()
     workflowId = Workflow.id
+    if data_change_type in ('数据修订','数据初始化') and sqlContent:
+        oraAutoReview.delay(workflowId)
 
-    #自动审核通过了，才发邮件
-    if workflowStatus == Const.workflowStatus['manreviewing']:
-        #如果进入等待人工审核状态了，则根据settings.py里的配置决定是否给审核人发一封邮件提醒.
-        if hasattr(settings, 'MAIL_ON_OFF') == True:
-            if getattr(settings, 'MAIL_ON_OFF') == "on":
-                url = _getDetailUrl(request) + str(workflowId) + '/?mob=1'
+    #如果进入等待人工审核状态了，则根据settings.py里的配置决定是否给审核人发一封邮件提醒.
+    if hasattr(settings, 'MAIL_ON_OFF') == True:
+        if getattr(settings, 'MAIL_ON_OFF') == "on":
+            url = _getDetailUrl(request) + str(workflowId) 
 
-                #发一封邮件
-                strTitle = "新的SQL上线工单提醒 # " + str(workflowId)
-                objEngineer = users.objects.get(username=engineer)
-                for reviewMan in listAllReviewMen:
-                    if reviewMan == "":
-                        continue
-                    strContent = "发起人：" + engineer + "\n审核人：" + str(listAllReviewMen)  + "\n工单地址：" + url + "\n工单名称： " + workflowName + "\n具体SQL：" + sqlContent
-                    objReviewMan = users.objects.get(username=reviewMan)
-                    mailSender.sendEmail(strTitle, strContent, [objReviewMan.email])
-            else:
-                #不发邮件
-                pass
-    
+            #发一封邮件
+            strTitle = "新的SQL上线工单提醒 # " + str(workflowId)
+            objEngineer = users.objects.get(username=engineer)
+            for reviewMan in listAllReviewMen:
+                if reviewMan == "":
+                    continue
+                strContent = "发起人：" + engineer + "\n审核人：" + str(listAllReviewMen)  + "\n工单地址：" + url + "\n工单名称： " + workflowName+"\n原因:"+ reason+"\n备注说明: "+ message + "\n具体SQL：" + sqlContent
+                objReviewMan = users.objects.get(username=reviewMan)
+                mailSender.sendEmail(strTitle, strContent, [objReviewMan.email])
+        else:
+            #不发邮件
+            pass
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 
+
 
 def _mapResultSt(x):
     if x['stagestatus'] == '连接服务器异常':
@@ -296,7 +283,6 @@ def _mapResultSt(x):
 
 #展示SQL工单详细内容，以及可以人工审核，审核通过即可执行
 def detail(request, workflowId):
-    mob=request.GET.get('mob')
     PAGE_LIMIT = 12
     pageNo = 0
 
@@ -305,7 +291,10 @@ def detail(request, workflowId):
     if workflowDetail.status in (Const.workflowStatus['finish'], Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']):
         listResult = json.loads(workflowDetail.execute_result)
     else:
-        listResult = json.loads(workflowDetail.review_content)
+        if workflowDetail.review_content:
+            listResult = json.loads(workflowDetail.review_content)
+        else:
+            listResult=[]
     pages = math.ceil(len(listResult)/PAGE_LIMIT)
     if 'pageNo' in request.GET:
         pageNo = min(int(request.GET['pageNo']),pages-1)
@@ -324,16 +313,13 @@ def detail(request, workflowId):
         listAllReviewMen = json.loads(workflowDetail.review_man)
     except ValueError:
         listAllReviewMen = (workflowDetail.review_man, )
-    
-    if mob and mob == '1':
-        for content in listContent:
-            content['sql']='隐藏'
+    strMessage = workflowDetail.message
 
     # 格式化detail界面sql语句和审核/执行结果 by 搬砖工
     #for Content in listContent:
     #    Content[4] = Content[4].split('\n')     # 审核/执行结果
     #    Content[5] = Content[5].split('\r\n')   # sql语句
-    context = {'currentMenu':'allworkflow', 'workflowDetail':workflowDetail, 'listContent':listContent,'pages':pages,'pageNo':pageNo,'PAGE_LIMIT':PAGE_LIMIT,'listAllReviewMen':listAllReviewMen,'pageRange':pageRange}
+    context = {'currentMenu':'allworkflow', 'workflowDetail':workflowDetail, 'listContent':listContent,'pages':pages,'pageNo':pageNo,'PAGE_LIMIT':PAGE_LIMIT,'listAllReviewMen':listAllReviewMen,'pageRange':pageRange,'strMessage':strMessage}
     return render(request, 'detail.html', context)
 #人工审核也通过，执行SQL
 def execute(request):
@@ -364,6 +350,7 @@ def execute(request):
     #将流程状态修改为执行中，并更新reviewok_time字段
     workflowDetail.status = Const.workflowStatus['executing']
     workflowDetail.reviewok_time = getNow()
+    workflowDetail.save()
 
     #workflowDetail.save()
 
@@ -457,28 +444,6 @@ def cancel(request):
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/')
 
-#展示回滚的SQL
-def rollback(request):
-    workflowId = request.GET['workflowid']
-    if workflowId == '' or workflowId is None:
-        context = {'errMsg': 'workflowId参数为空.'}
-        return render(request, 'error.html', context)
-    workflowId = int(workflowId)
-    listBackupSql = inceptionDao.getRollbackSqlList(workflowId)
-    workflowDetail = workflow.objects.get(id=workflowId)
-    workflowName = workflowDetail.workflow_name
-    rollbackWorkflowName = "【回滚工单】原工单Id:%s ,%s" % (workflowId, workflowName)
-    cluster_name = workflowDetail.cluster_name
-    try:
-        listAllReviewMen = json.loads(workflowDetail.review_man)
-        review_man = listAllReviewMen[0]
-        sub_review_man = listAllReviewMen[1]
-    except ValueError:
-        review_man = workflowDetail.review_man
-        sub_review_man = ''
-
-    context = {'listBackupSql':listBackupSql, 'rollbackWorkflowName':rollbackWorkflowName, 'cluster_name':cluster_name, 'review_man':review_man, 'sub_review_man':sub_review_man}
-    return render(request, 'rollback.html', context)
 
 #检查登录用户是否为admin
 def check_admin(func):

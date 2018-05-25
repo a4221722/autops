@@ -1,8 +1,10 @@
 # --* coding=utf-8 *--
+import json
 
 from .daoora import DaoOra
 from .getnow import getNow
-from .models import operation_record,operation_ctl,ora_primary_config,ora_tables
+from .models import operation_record,operation_ctl,ora_primary_config,ora_tables,workflow
+from .const import Const
 from celery import task
 from django.db.utils import IntegrityError
 
@@ -20,6 +22,7 @@ def syncDictData(clusterListSync):
     clusterResult = []
     for clusterName in clusterListSync:
         operationRecord.message+='开始同步'+clusterName+'.$$'
+        operationRecord.save()
         primary = ora_primary_config.objects.get(cluster_name=clusterName)
         count = 0
         dictTime = primary.dict_time
@@ -66,3 +69,20 @@ def syncDictData(clusterListSync):
     operationRecord.save()
     ctl.status='正常'
     ctl.save()
+
+@task()
+def oraAutoReview(workflowId):
+    workflowDetail = workflow.objects.get(id=workflowId)
+    sqlContent = workflowDetail.sql_content
+    clusterNameStr = workflowDetail.cluster_name
+    parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
+    jsonResult = json.dumps(parseResult)
+    workflowStatus = Const.workflowStatus['manreviewing']
+    
+    for ret in parseResult:
+        if ret['stage'] == 'UNCHECKED':
+            workflowStatus = Const.workflowStatus['autoreviewwrong']
+            break
+    workflowDetail.status = workflowStatus
+    workflowDetail.review_content = jsonResult
+    workflowDetail.save()

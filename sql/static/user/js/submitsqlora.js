@@ -28,8 +28,10 @@ $("#btn-submitsqlora").click(function (){
 	var sqlContent = $("#sql_content");
 	var clusterName = $("#cluster_name");
 	var review_man = $('#review_man');
+	var message = $('#message');
 	var $check = $('#cluster_name_checkbox').find('input[type="checkbox"]:checked');
 	var checkedArr = [];
+	var message = $("#message");
 	$check.each(function() {
 		var item = $(this);
 		checkedArr.push(item.val());
@@ -44,11 +46,17 @@ $("#btn-submitsqlora").click(function (){
 	})
 	review_man.val(viewArr.join());
 	
+	var type = $('#data_change_type').val();
+
 	if(validateForm(formSubmit)){
 		if (clusterName.val() == '') {
 			alert('实例名不能为空');
 		}else if(review_man.val() == '') {
 			alert('审核人不能为空');
+		}else if((type === '数据修订'|| type === '数据初始化')&&sqlContent.val()===''){
+			alert('sql文本不能为空');
+		}else if((type === '数据迁移'|| type === '其他')&&message.val()==='') {
+			alert('备注不能为空');
 		}else {
 			$('#btn-submitsqlora').prop('disabled',true);
 			formSubmit.submit();

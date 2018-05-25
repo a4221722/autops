@@ -60,6 +60,9 @@
 							工单ID
 						</th>
 						<th>
+							工单类型
+						</th>
+						<th>
 							工单名称
 						</th>
 						<th>
@@ -81,6 +84,9 @@
 					<tr>
 						<td>
 							{{workflow.id}}
+						</td>
+						<td>
+							{{workflow.data_change_type}}
 						</td>
 						<td>
 							<a href="/detail/{{workflow.id}}/">{{workflow.workflow_name}}</a>

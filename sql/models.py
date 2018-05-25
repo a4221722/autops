@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from .aes_decryptor import Prpcrypt
 import datetime
+from .const import Const
 
 # Create your models here.
 
@@ -61,7 +62,7 @@ class workflow(models.Model):
     review_man = models.CharField('审核人', max_length=50)
     create_time = models.DateTimeField('创建时间', auto_now_add=True)
     finish_time = models.DateTimeField('结束时间', null=True, blank=True)
-    status = models.CharField(max_length=50, choices=(('已正常结束','已正常结束'),('人工终止流程','人工终止流程'),('自动审核中','自动审核中'),('等待审核人审核','等待审核人审核'),('执行中','执行中'),('自动审核不通过','自动审核不通过'),('执行有异常','执行有异常')))
+    status = models.CharField(max_length=50, choices=tuple([(v,v) for k,v in Const.workflowStatus.items()]))#(('已正常结束','已正常结束'),('人工终止流程','人工终止流程'),('自动审核中','自动审核中'),('等待审核人审核','等待审核人审核'),('执行中','执行中'),('自动审核不通过','自动审核不通过'),('执行有异常','执行有异常')))
     #is_backup = models.IntegerField('是否备份，0为否，1为是', choices=((0,0),(1,1)))
     is_backup = models.CharField('是否备份', choices=(('否','否'),('是','是')), max_length=20)
     review_content = models.TextField('自动审核内容的JSON格式')
@@ -69,6 +70,9 @@ class workflow(models.Model):
     reviewok_time = models.DateTimeField('人工审核通过的时间', null=True, blank=True)
     sql_content = models.TextField('具体sql内容')
     execute_result = models.TextField('执行结果的JSON格式')
+    message = models.TextField('备注说明',null=True)
+    data_change_type = models.CharField('数据变更类型',choices=(('数据修订','数据修订'),('数据初始化','数据初始化'),('数据迁移','数据迁移')),max_length=50)
+    reason = models.CharField('原因',max_length=200)
 
     def __str__(self):
         return self.workflow_name

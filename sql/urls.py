@@ -13,11 +13,10 @@ urlpatterns = [
     url(r'editsql/$', views.submitSqlOra, name='editsql'),
     url(r'^allworkflow/$', views.allworkflow, name='allworkflow'),
     
-    url(r'^oraautoreview/$', views.oraautoreview, name='oraautoreview'),
+    url(r'^workflowsubmit/$', views.workflowSubmit, name='workflowsubmit'),
     url(r'^detail/(?P<workflowId>[0-9]+)/$', views.detail, name='detail'),
     url(r'^execute/$', views.execute, name='execute'),
     url(r'^cancel/$', views.cancel, name='cancel'),
-    url(r'^rollback/$', views.rollback, name='rollback'),
     url(r'^datasync/$', views.datasync, name='datasync'),
     url(r'^dbaprinciples/$', views.dbaprinciples, name='dbaprinciples'),
     url(r'^charts/$', views.charts, name='charts'),

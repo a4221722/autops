@@ -9,7 +9,7 @@ td,th{
 	word-break: break-all;
 }
 .td-need-pre-line{
-	white-space: pre-line;
+	white-space: pre-line!important;
 	word-break: break-all;
 }
 .user-bottom-div {
