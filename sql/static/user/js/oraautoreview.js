@@ -192,9 +192,10 @@ var addRoleFunc = {
 				username:$('#add_role_username').val(),
 				table_list:JSON.stringify(table_list),
 			},function(data){
-				if(data.status==="saved") {
-					alert('save success');
-				}
+				alert(data.msg);
+				//if(data.status==="saved") {
+				//	alert('save success');
+				//}
 			}).fail(function() {
 				alert('Interface call failed');
 			})

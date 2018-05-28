@@ -4,32 +4,31 @@
 <div class="col-md-9 column">
 	<h4>单子名称：<span id="editWorkflowNname">{{workflowDetail.workflow_name}}</span></h4>
 	<hr>
-		{% if workflowDetail.status != "等待手工执行" and workflowDetail.status != "手工执行成功" and workflowDetail.status != "手工执行异常" %}
 		<table class="table table-striped table-hover" width='100%' style='table-layout:fixed;'>
 			<thead>
 				<tr>
-					<th width="40px">
+					<th>
 						ID
 					</th>
-					<th width="110px">
-						实例名
-					</th>
 					<th>
+						实例
+					</th>
+					<th width="50%">
 						SQL内容
 					</th>
 					<th>
 						审核结果
 					</th>
-					<th width="110px">
-						估算影响行数
+					<th>
+						估算行数
 					</th>
-					<th width="110px">
-						实际影响行数
+					<th>
+						实际行数
 					</th>
-					<th width="100px">
-						实际执行耗时(ms)
+					<th>
+						实际耗时(ms)
 					</th>
-					<th width="100px">
+					<th>
 						执行状态
 					</th>
 				</tr>
@@ -49,7 +48,7 @@
 						{% endif %}
 						{{ dictrow.clustername }}
 					 </td>
-				   <td class="td-need-pre" style="text-align: left">{% if dictrow.stagestatus == "sql执行异常" or dictrow.stagestatus == "解析失败" %}<font color="red">{% endif %}{{ dictrow.sql }}
+				   <td class="td-need-pre" style="text-align: left" >{% if dictrow.stagestatus == "sql执行异常" or dictrow.stagestatus == "解析失败" %}<font color="red">{% endif %}{{ dictrow.sql }}
 					 </td>
 					 <td style='word-wrap:break-word;'>
 						{% if dictrow.stagestatus == "连接服务器异常" or dictrow.stagestatus == "sql执行异常" or dictrow.stagestatus == "解析失败" %}
@@ -109,7 +108,6 @@
 				
 			</tbody>
 		</table>
-		{% endif %}
 		<div style="text-align:center;">
 			<ul class="pagination" style="display:inline-block;">
 					<!--{% if pages >= 5 %}i-->

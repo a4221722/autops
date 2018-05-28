@@ -417,22 +417,33 @@ def privCommit(request,operation):
     username = request.POST.get('username')
     tabList = json.loads(request.POST.get('table_list'))
     status = 'saved'
-    masg = '保存成功'
+    msg = '保存成功'
     for table_id in tabList:
         try:
             if operation == 'add':
-                p = ora_tab_privs(username = username,table = ora_tables(id = int(table_id)))
-                p.save()
+                p = ora_tab_privs.objects.filter(username = username,table = ora_tables(id = int(table_id)))
+                if p.count() != 0:
+                    status = 'save failed'
+                    msg = '请勿重复保存'
+                else:
+                    ora_tab_privs(username = username,table = ora_tables(id = int(table_id))).save()
             elif operation == 'delete':
                 p = ora_tab_privs.objects.filter(username = username,table = ora_tables(id = int(table_id)))
-                p.delete()
+                if len(p) == 0:
+                    status = 'save failed'
+                    msg = '请勿重复删除'
+                else:
+                    p.delete()
+        except IntegrityError:
+            status = 'save failed'
+            msg = '请勿重复保存'
         except Exception as e:
             print(str(e))
             status = 'save failed'
             msg = '有数据保存/删除失败'
         else:
             continue
-    result = {'status':'saved'}
+    result = {'status':status,'msg':msg}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
 @csrf_exempt
