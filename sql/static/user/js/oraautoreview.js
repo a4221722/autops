@@ -354,7 +354,7 @@ var allawr = {
 					var buttonValue = '';
 					var pagesHTML = '';
 					data.list_snapshot.forEach(function(item) {
-						buttonValue=item[2]+'' == 0 ? 'generate' : 'display';
+						buttonValue=item[2]+'' == 0 ? 'generate' : (item[2]+'' == 1 ? 'display' : 'generating...');
 						tbodyHTML += `<tr>
 							<td>${item[0]}</td>
 							<td>${item[1]}</td>
@@ -390,8 +390,8 @@ var allawr = {
 						<table class="table table-hover" id="awr_table">
 							<thead>
 								<tr>
-									<th>id</th>
-									<th>time</th>
+									<th>snap_id</th>
+									<th>快照时间</th>
 									<th>操作</th>
 								</tr>
 							</thead>
