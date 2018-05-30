@@ -315,6 +315,103 @@ function execSql() {
 	})
 }
 
+var allawr = {
+	init() {
+		this.searchAllawr();
+	},
+	searchAllawr() {
+		window.currentPage = 1;
+		
+		$('#btn_search_awr').on('click',function() {
+			allawr.getTableData();
+		})
+	},
+	awrPagination() {
+		$('#allawr_pages').on('click','a',function() {
+			window.currentPage = parseInt($(this).attr('data-page'));
+			allawr.getTableData(window.currentPage);
+		})
+		$('#awr_table').on('click','input',function() {
+			var _this = $(this);
+			var op = _this.attr('data-role');
+			var snap_id = _this.attr('data-id');
+			var cluster_name = _this.attr('data-cluster');
+			$.getJSON('/allawr/',{cluster_name,snap_id,op},function(data){
+				if(op === 'display') {
+					window.location.href = data.awr_path;
+				}else {
+					alert('success');
+					$('#btn_search_awr').trigger('click');
+				}
+			})
+		})
+	},
+	getTableData() {
+		var cluster_name = $('#cluster_name_select').next().find('.filter-option').html();
+			$.getJSON('/allawr/',{cluster_name,page:window.currentPage},function(data) {
+				if(data.list_snapshot.length > 0) {
+					var tbodyHTML = '';
+					var buttonValue = '';
+					var pagesHTML = '';
+					data.list_snapshot.forEach(function(item) {
+						buttonValue=item[2]+'' == 0 ? 'generate' : 'display';
+						tbodyHTML += `<tr>
+							<td>${item[0]}</td>
+							<td>${item[1]}</td>
+							<td><input type="button" class="btn btn-primary" value="${buttonValue}" data-role="${buttonValue}" data-cluster="${cluster_name}" data-id="${item[0]}"/></td>
+						</tr>`
+					})
+					if(data.pages > 5) {
+						pagesHTML = `
+							${
+								window.currentPage===1?
+								'':`<li><a aria-label="Previous" data-page="${window.currentPage-1}"><span aria-hidden="true">&laquo;</span></a></li>`
+							}
+							<li class="active"><a data-page="${window.currentPage}">${window.currentPage}</a></li>
+							<li><a data-page="${window.currentPage+1}">${window.currentPage+1}</a></li>
+							<li><a data-page="${window.currentPage+2}">${window.currentPage+2}</a></li>
+							<li><a data-page="${window.currentPage+3}">${window.currentPage+3}</a></li>
+							<li><a data-page="${window.currentPage+4}">${window.currentPage+4}</a></li>
+							<li>
+								<a aria-label="Next" data-page="${window.currentPage+1}">
+									<span aria-hidden="true">&raquo;</span>
+								</a>
+							</li>
+						`
+
+					} else {
+						var lis = '';
+						for(let i = 0; i < data.pages; i++) {
+							lis+= `<li><a>${i+1}</a></li>`;
+						}
+						pagesHTML = lis;
+					}
+					$('#allawr_table').html(`
+						<table class="table table-hover" id="awr_table">
+							<thead>
+								<tr>
+									<th>id</th>
+									<th>time</th>
+									<th>操作</th>
+								</tr>
+							</thead>
+							<tbody>
+								${tbodyHTML}
+							</tbody>
+						</table>
+						<nav aria-label="Page navigation" id="allawr_pages">
+							<ul class="pagination">
+								${pagesHTML}
+							</ul>
+						</nav>
+					`)
+					allawr.awrPagination();
+					
+				}
+				
+			})
+	}
+}
 function downloadSql() {
 	$('#download-btn').on('click',function() {
 		var elHtml = $('#show_modal_sql_content').html().replace(/\n/g,'\r\n');
@@ -329,12 +426,15 @@ function downloadSql() {
 		document.getElementById('createInvoteMsg').click();
 	})
 }
+
 downloadSql();
 execSql();
 renderClusterResult();
+// renderAwrResult();
 pagination();
 // fillSqlContent();
 confirmManual();
 submitManualConfirm();
 fillQueryOraPage();
 addRoleFunc.addRole();
+allawr.init();

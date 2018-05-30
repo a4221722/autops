@@ -490,5 +490,3 @@ class DaoOra(object):
             msg = "不支持的操作,该页面仅支持查询操作!"
 
         return finalStatus,msg,headerList,queryResult
-
-

@@ -47,6 +47,7 @@ INSTALLED_APPS = (
     'djcelery',
     'kombu.transport.django',
     'sql',
+    'dbmonitor',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -66,7 +67,7 @@ ROOT_URLCONF = 'archer.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'sql/static')],
+        'DIRS': [os.path.join(BASE_DIR, 'sql/static'),os.path.join(BASE_DIR,'awr/')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -243,3 +244,4 @@ RESULT_DICT = {
     'execute_time':0,
     'real_rows':0}
 WAN_HOST = '183.129.201.236:18090'
+CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler'

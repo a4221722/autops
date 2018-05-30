@@ -492,6 +492,7 @@ def queryora(request):
     logon_user = request.session.get('login_username', False)
     clusterName = request.POST.get('cluster_name')
     sql_content = request.POST.get('sql_content')
+    sql_query = request.POST.get('sql_query')
     try:
         page = int(request.POST.get('page','1'))
     except Exception:
@@ -503,8 +504,8 @@ def queryora(request):
     if page < 1:
         page = 1
 
-    if sql_content:
-        sqlContent = sql_content.strip().rstrip(';')
+    if sql_query:
+        sqlContent = sql_query.strip().rstrip(';')
         if len(sqlContent) == 0:
             context = {'errMsg':'sql内容不能为空'}
             return render(request,'error.html',context)
