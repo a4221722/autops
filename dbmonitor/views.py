@@ -33,6 +33,9 @@ def allAwr(request):
         except ValueError:
             page = 1
         finalStatus,msg,headerList,resultList = daoora.getSnapshot(clusterName)
+        if finalStatus!='执行结束':
+            result={'status':'error','msg':msg}
+            return HttpResponse(json.dumps(result), content_type='application/json')
         cnt=len(resultList)
         pages=math.ceil(cnt/pageLimit)
         hasAwr = ora_awr_report.objects.filter(cluster_name=clusterName)
@@ -57,7 +60,7 @@ def allAwr(request):
         #    page_range = paginator.page_range[page-after_range_num:page+before_range_num]
         #else:
         #    page_range = paginator.page_range[0:int(page)+before_range_num]
-        result={'pages':pages,'list_snapshot':snapList}
+        result={'status':'ok','pages':pages,'list_snapshot':snapList}
         return HttpResponse(json.dumps(result), content_type='application/json')
     elif clusterName and snapId and op=='generate':
         awrObject=ora_awr_report(cluster_name=clusterName,end_snap_id=snapId)

@@ -349,6 +349,9 @@ var allawr = {
 	getTableData() {
 		var cluster_name = $('#cluster_name_select').next().find('.filter-option').html();
 			$.getJSON('/allawr/',{cluster_name,page:window.currentPage},function(data) {
+				if(data.status == 'error'){
+					alert(data.msg)
+				}
 				if(data.list_snapshot.length > 0) {
 					var tbodyHTML = '';
 					var buttonValue = '';
