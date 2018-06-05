@@ -7,6 +7,7 @@ class ora_awr_report(models.Model):
     interval = models.CharField('时间区间',max_length=30)
     create_time = models.DateTimeField('创建时间',auto_now_add=True)
     awr_location = models.CharField('awr报告',max_length=200)
+    status = models.CharField('状态',default='init',max_length=500)
 
     class Meta:
         unique_together = (("cluster_name","end_snap_id"),)

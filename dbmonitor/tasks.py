@@ -9,7 +9,7 @@ daoora=DaoOra()
 
 @task()
 def getAsignAwr(cluseterName,snapId):
-    report = ora_awr_report.objects.get(cluster_name=cluseterName,end_snap_id=snapId)
+    #report = ora_awr_report.objects.get(cluster_name=cluseterName,end_snap_id=snapId)
     daoora.getAwr(cluseterName,snapId)
 
 

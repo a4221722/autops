@@ -11,6 +11,7 @@ from django.db.utils import IntegrityError
 from .tasks import getAsignAwr
 import json
 import math
+import pdb
 
 daoora=DaoOra()
 
@@ -37,18 +38,15 @@ def allAwr(request):
         hasAwr = ora_awr_report.objects.filter(cluster_name=clusterName)
         hasSnapDict={}
         for row in hasAwr:
-            hasSnapDict[row.end_snap_id]=row.awr_location
-        hasSnapId = [row.end_snap_id for row in hasAwr]
+            hasSnapDict[row.end_snap_id]=row.status
         after_range_num = 5
         before_range_num = 4
         snapList=[]
         for row in resultList:
-            if row[0] in hasSnapDict.keys() and hasSnapDict[row[0]]:
-                snapList.append([row[0],row[1],1])
-            elif row[0] in hasSnapDict.keys():
-                snapList.append([row[0],row[1],2])
+            if row[0] in hasSnapDict.keys():
+                snapList.append([row[0],row[1],hasSnapDict[row[0]]])
             else:
-                snapList.append([row[0],row[1],0])
+                snapList.append([row[0],row[1],'init'])
         snapList=snapList[pageLimit*page-pageLimit:pageLimit*page-1]
         #paginator = Paginator(snapList, 10)
         #try:
@@ -81,7 +79,7 @@ def allAwr(request):
         except Exception as err:
             context = {'errMsg':'报告还未生成!'}
             return render(request, 'error.html', context)
-        if len(awrReport.awr_location) < 1:
+        if awrReport.status != 'generated':
             context = {'errMsg':'报告还未生成!'}
             return render(request, 'error.html', context)
         else:

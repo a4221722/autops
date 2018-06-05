@@ -340,7 +340,7 @@ var allawr = {
 				if(op === 'display') {
 					window.location.href = data.awr_path;
 				}else {
-					alert('success');
+					alert(data.msg);
 					$('#btn_search_awr').trigger('click');
 				}
 			})
@@ -354,11 +354,12 @@ var allawr = {
 					var buttonValue = '';
 					var pagesHTML = '';
 					data.list_snapshot.forEach(function(item) {
-						buttonValue=item[2]+'' == 0 ? 'generate' : (item[2]+'' == 1 ? 'display' : 'generating...');
+						buttonValue=item[2]+'' == 'init' ? 'generate' : (item[2]+'' == 'generated' ? 'display' : '    ');
 						tbodyHTML += `<tr>
 							<td>${item[0]}</td>
 							<td>${item[1]}</td>
 							<td><input type="button" class="btn btn-primary" value="${buttonValue}" data-role="${buttonValue}" data-cluster="${cluster_name}" data-id="${item[0]}"/></td>
+							<td>${item[2]}</td>
 						</tr>`
 					})
 					if(data.pages > 5) {
@@ -393,6 +394,7 @@ var allawr = {
 									<th>snap_id</th>
 									<th>快照时间</th>
 									<th>操作</th>
+									<th>状态</th>
 								</tr>
 							</thead>
 							<tbody>

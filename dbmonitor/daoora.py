@@ -60,6 +60,8 @@ class DaoOra(object):
         return finalStatus,msg,headerList,queryResult
     def getAwr(self,clusterName,snapId):
         awrObject=ora_awr_report.objects.get(cluster_name=clusterName,end_snap_id=snapId)
+        awrObject.status='generating'
+        awrObject.save()
         snapIdA = str(int(snapId)-1)
         snapId = str(snapId)
         self.getDbInfo(clusterName)
@@ -82,19 +84,23 @@ class DaoOra(object):
                     from dba_hist_snapshot
                     where instance_number ="""+instNum+") where snap_id="+snapId
             crPr.execute(intSql)
-            interval = [str(row[1])+'-'+str(row[0]) for row in crPr.fetchall()]
-            print(interval[0])
-            awrSql = "select output from table(dbms_workload_repository.awr_report_html("+dbId+','+instNum+','+snapIdA+','+snapId+',0))'
-            crPr.execute(awrSql)
-            awrResult=crPr.fetchall()
-            f=open(settings.BASE_DIR+'/awr/'+awrName,'a')
-            for row in awrResult:
-                content=row[0]
-                if not content:
-                    content='\n'
-                f.write(content)
-            f.close()
+            interval = [str(row[2])+'-'+str(row[1]) for row in crPr.fetchall()]
+            try:
+                awrSql = "select output from table(dbms_workload_repository.awr_report_html("+dbId+','+instNum+','+snapIdA+','+snapId+',0))'
+                crPr.execute(awrSql)
+                awrResult=crPr.fetchall()
+                f=open(settings.BASE_DIR+'/awr/'+awrName,'a')
+                for row in awrResult:
+                    content=row[0]
+                    if not content:
+                        content='\n'
+                    f.write(content)
+                f.close()
+            except Exception as err:
+                awrObject.status='error: '+str(err)[:50]
+            else:
+                awrObject.status='generated'
+                awrObject.awr_location=awrName
         awrObject.interval=interval[0]
-        awrObject.awr_location=awrName
         awrObject.save()
 
