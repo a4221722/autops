@@ -162,6 +162,8 @@ function submitManualConfirm(){
 		})
 	})
 }
+
+
 var addRoleFunc = {
 	addRole() {
 		$('#role_table').on('click','[data-role="add_role_btn"]',function() {
@@ -315,6 +317,7 @@ function execSql() {
 	})
 }
 
+
 var allawr = {
 	init() {
 		this.searchAllawr();
@@ -324,6 +327,13 @@ var allawr = {
 		
 		$('#btn_search_awr').on('click',function() {
 			allawr.getTableData();
+		})
+
+		$('#btn_generate_snap').on('click',function() {
+			var cluster_name = $('#cluster_name_select').next().find('.filter-option').html();
+			$.getJSON('/generatesnap/',{cluster_name},function(data) {
+				alert(data.msg);
+			})
 		})
 	},
 	awrPagination() {
@@ -443,3 +453,4 @@ submitManualConfirm();
 fillQueryOraPage();
 addRoleFunc.addRole();
 allawr.init();
+// generateSnapshot();

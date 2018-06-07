@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from .models import ora_awr_report
-from sql.models import ora_primary_config
+from sql.models import ora_primary_config,operation_ctl
 from sql.views import check_admin
 from .daoora import DaoOra
 from django.conf import settings
@@ -8,7 +8,7 @@ from django.shortcuts import render
 from django.http import HttpResponse,HttpResponseRedirect
 from django.core.paginator import Paginator,InvalidPage,EmptyPage,PageNotAnInteger
 from django.db.utils import IntegrityError
-from .tasks import getAsignAwr
+from .tasks import getAsignAwr,collectStat
 import json
 import math
 import pdb
@@ -96,3 +96,26 @@ def awrDisplay(request):
     awrPath = request.GET.get('awrPath')
     return render(request,awrPath)
 
+def generateSnap(request):
+    clusterName = request.GET['cluster_name']
+    msg=daoora.snapshot(clusterName)
+    result={'msg':msg}
+    return HttpResponse(json.dumps(result), content_type='application/json')
+
+def statCollect(request):
+    primaries = ora_primary_config.objects.all().order_by('cluster_name')
+    listCluster = [primary.cluster_name for primary in primaries]
+    clusterListCollect = request.POST.get('cluster_list_collect')
+    if clusterListCollect:
+        clusterListCollect=json.loads(clusterListCollect)
+        ctl = operation_ctl.objects.get(data_type='统计信息' ,opt_type='收集')
+        if ctl.status == '进行中':
+            finalResult = {'status':'error','msg':'有任务进行中'}
+        else:
+            ctl.status='进行中'
+            ctl.save()
+            collectStat.delay(clusterListCollect)
+            finalResult = {'status':'ok'}
+        return HttpResponse(json.dumps(finalResult), content_type='application/json')
+    finalResult = {'listCluster':listCluster}
+    return HttpResponse(json.dumps(finalResult), content_type='application/json')

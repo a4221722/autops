@@ -63,7 +63,10 @@ def syncDictData(clusterListSync):
         primary.save(keepPass=1)
         #finalResult['msg'] += clusterName+': '+str(count)+' 张表同步成功'+'<br/>'
     #return HttpResponse(json.dumps(finalResult), content_type='application/json')
-    operationRecord.status='已结束'
+    if operationRecord.status=='有异常':
+        pass
+    else:
+        operationRecord.status='已结束'
     operationRecord.finish_time=getNow()
     operationRecord.message+=','.join(clusterResult)
     operationRecord.save()

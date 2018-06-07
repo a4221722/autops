@@ -27,6 +27,14 @@
 		</td>
 		<td>{{ optDict.数据字典_同步.1 }}</td>
 	</tr>
+	<tr>
+		<td>统计信息</td>
+		<td>{{ optDict.统计信息_收集.0 }}</td>
+		<td>
+			<button type="button" data-role="sync_dict_btn" class="btn btn-primary" data-toggle="modal" data-target="#colc_modal">收集</button>
+		</td>
+		<td>{{ optDict.统计信息_收集.1 }}</td>
+	</tr>
 	</tbody>
 </table>
 
@@ -87,4 +95,33 @@
         </div>
       </div>
     </div>
+    <div class="modal fade" tabindex="-1" role="dialog" id="colc_modal" aria-labelledby="colcModalLabel">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title" id="colcModalLabel">收集</h4>
+          </div>
+          <div class="modal-body">
+            <div id="colc_content">
+              <div class="form-group" id="cluster_name_block">
+                实例:
+                <div id="select_group">
+                  <input type="radio" id="selectAll" name="selectBox" class="radios" data-select="true">全选
+                  <input type="radio" id="oppselectAll" name="selectBox" class="radios" data-select="opps">反选
+                  <input type="radio" id="unselectAll" name="selectBox" class="radios" data-select="">全不选
+                </div> 
+                <div id="table_select_colc" style="padding-left: 20px;max-height:350px;overflow: auto;"></div>
+              </div>
+              <!-- <button type="button" class="btn btn-primary" id="add_role_totext">add</button> -->
+              <!-- <div name="role-content" id="role_content" style="padding:5px;margin:10px 0;width:540px;height:350px;overflow:auto;border:1px solid #ddd;"></div> -->
+              <button type="button" class="btn btn-primary" id="colc_submit">收集</button>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+          </div>
+          </div>
+        </div>
+      </div>
 {% endblock content %}

@@ -104,3 +104,73 @@ class DaoOra(object):
         awrObject.interval=interval[0]
         awrObject.save()
 
+    def snapshot(self,clusterName):
+        self.getDbInfo(clusterName)
+        oraLinkPr = self.primaryHost+':'+str(self.primaryPort)+'/'+self.primarySrv
+        try:
+            connPr = cx_Oracle.connect(self.primaryUser,self.primaryPassword,oraLinkPr,encoding=self.charset)
+        except Exception as e:
+            print(str(e))
+        else:
+            crPr = connPr.cursor()
+        try:
+            crPr.callproc('dbms_workload_repository.create_snapshot')
+        except Exception as err:
+            return(str(err))
+        else:
+            return('ok')
+
+    def collectStat(self,clusterName):
+        self.getDbInfo(clusterName)
+        oraLinkPr = self.primaryHost+':'+str(self.primaryPort)+'/'+self.primarySrv
+        try:
+            connPr = cx_Oracle.connect(self.primaryUser,self.primaryPassword,oraLinkPr,encoding=self.charset)
+        except Exception as e:
+            print(str(e))
+        else:
+            crPr = connPr.cursor()
+        try:
+            crPr.callproc('DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO')
+            crPr.execute("""SELECT OWNER,
+                                   SEGMENT_NAME,
+                                   CASE
+                                     WHEN SIZE_GB < 0.5 THEN
+                                      30
+                                     WHEN SIZE_GB >= 0.5 AND SIZE_GB < 1 THEN
+                                      20
+                                     WHEN SIZE_GB >= 1 AND SIZE_GB < 5 THEN
+                                      10
+                                     WHEN SIZE_GB >= 5 AND SIZE_GB < 10 THEN
+                                      5
+                                     WHEN SIZE_GB >= 10 THEN
+                                      1
+                                   END AS PERCENT,
+                                   8 AS DEGREE
+                              FROM (SELECT OWNER,
+                                           SEGMENT_NAME,
+                                           SUM(BYTES / 1024 / 1024 / 1024) SIZE_GB
+                                      FROM DBA_SEGMENTS a
+                                     WHERE OWNER <> 'SYS'
+                                       AND SEGMENT_NAME IN
+                                           (SELECT /*+ UNNEST */
+                                            DISTINCT TABLE_NAME
+                                              FROM DBA_TAB_STATISTICS
+                                             WHERE (LAST_ANALYZED IS NULL OR STALE_STATS = 'YES')
+                                               AND OWNER not in ('SYS','SYSTEM')
+                                               and stattype_locked is null
+                                               and table_name <>'20140124_test')
+                                       and not exists
+                                     (select null
+                                              from dba_tables b
+                                             where b.iot_type = 'IOT_OVERFLOW'
+                                               and a.segment_name = b.table_name)
+                                     GROUP BY OWNER, SEGMENT_NAME)""")
+            result = crPr.fetchall()
+            for row in result:
+                crPr.callproc('DBMS_STATS.GATHER_TABLE_STATS',keywordParameters={'OWNNAME':row[0],'TABNAME':row[1],'ESTIMATE_PERCENT':row[2],'METHOD_OPT':'for all columns size repeat','degree':8,'cascade':'TRUE'})
+
+        except Exception as err:
+            return(str(err))
+        else:
+            return('ok')
+

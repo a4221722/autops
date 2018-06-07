@@ -32,7 +32,7 @@ function show_sync_data() {
                 list.forEach(item => {
                     tableHTML += '<p><input type="checkbox" name="datasync" value="'+item+'" class="checkbox-input">'+item+'</p>';
                 });
-                $('#table_select').html(tableHTML);
+                $('#table_select,#table_select_colc').html(tableHTML);
             },
         );
     });
@@ -43,7 +43,32 @@ function show_sync_data() {
             var item = $(this);
             syncArr.push(item.val());
         })
+        if(!syncArr.length) {
+            alert('info empty');
+            return;
+        }
         $.post('/syncoradict/',{cluster_list_sync :JSON.stringify(syncArr)},function(data) {
+            // fail => has data.msg
+            if(data.status == 'error') {
+                alert(data.msg);
+            } else {
+                // success
+                window.location.reload();
+            }
+        })
+    })
+    $('#colc_submit').on('click',function() {
+        var syncArr = [];
+        var checkboxs = $('#colc_modal').find('input[name="datasync"]:checked');
+        checkboxs.each(function(item) {
+            var item = $(this);
+            syncArr.push(item.val());
+        })
+        if(!syncArr.length) {
+            alert('info empty');
+            return;
+        }
+        $.getJSON('/statcollect/',{cluster_list_collect :JSON.stringify(syncArr)},function(data) {
             // fail => has data.msg
             if(data.status == 'error') {
                 alert(data.msg);
