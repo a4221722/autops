@@ -105,7 +105,7 @@ def generateSnap(request):
 def statCollect(request):
     primaries = ora_primary_config.objects.all().order_by('cluster_name')
     listCluster = [primary.cluster_name for primary in primaries]
-    clusterListCollect = request.POST.get('cluster_list_collect')
+    clusterListCollect = request.GET.get('cluster_list_collect')
     if clusterListCollect:
         clusterListCollect=json.loads(clusterListCollect)
         ctl = operation_ctl.objects.get(data_type='统计信息' ,opt_type='收集')

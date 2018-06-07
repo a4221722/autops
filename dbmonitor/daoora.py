@@ -70,6 +70,7 @@ class DaoOra(object):
             connPr = cx_Oracle.connect(self.primaryUser,self.primaryPassword,oraLinkPr,encoding=self.charset)
         except Exception as e:
             print(str(e))
+            return
         else:
             crPr = connPr.cursor()
         dbIdSql="select a.dbid,b.instance_number from v$database a,v$instance b"
@@ -130,6 +131,7 @@ class DaoOra(object):
         else:
             crPr = connPr.cursor()
         try:
+            crPr.callproc('dbms_stats.SET_DATABASE_PREFS',('CASCADE','TRUE'))
             crPr.callproc('DBMS_STATS.FLUSH_DATABASE_MONITORING_INFO')
             crPr.execute("""SELECT OWNER,
                                    SEGMENT_NAME,
@@ -167,8 +169,7 @@ class DaoOra(object):
                                      GROUP BY OWNER, SEGMENT_NAME)""")
             result = crPr.fetchall()
             for row in result:
-                crPr.callproc('DBMS_STATS.GATHER_TABLE_STATS',keywordParameters={'OWNNAME':row[0],'TABNAME':row[1],'ESTIMATE_PERCENT':row[2],'METHOD_OPT':'for all columns size repeat','degree':8,'cascade':'TRUE'})
-
+                crPr.callproc('DBMS_STATS.GATHER_TABLE_STATS',keywordParameters={'OWNNAME':row[0],'TABNAME':row[1],'ESTIMATE_PERCENT':row[2],'METHOD_OPT':'for all columns size repeat','degree':8})#,'cascade':True})
         except Exception as err:
             return(str(err))
         else:

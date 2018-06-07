@@ -1,12 +1,29 @@
 # --* coding=utf-8 *--
 import json
-import threading
+from threading import Thread
 
 from .daoora import DaoOra
 from celery import task
 from .models import ora_awr_report
+from sql.models import operation_ctl,operation_record
+from sql.getnow import getNow
 
 daoora=DaoOra()
+
+class workThread(Thread):
+    def __init__(self,func,args=()):
+        super(workThread,self).__init__()
+        self.func = func
+        self.args = args
+
+    def run(self):
+        self.result = self.func(*self.args)
+
+    def get_result(self):
+        try:
+            return self.result
+        except Exception:
+            return None
 
 @task()
 def getAsignAwr(cluseterName,snapId):
@@ -26,11 +43,13 @@ def collectStat(clusterListCollect):
     for clusterName in clusterListCollect:
         operationRecord.message+='开始收集'+clusterName+'.$$'
         operationRecord.save()
-        threadList.append(threading.Thread(target = daoora.collectStat,args=(clusterName)))
-    for t in threadList:
+        t=workThread(daoora.collectStat,(clusterName,))
+        threadList.append(t)
         t.start()
+    for t in threadList:
         t.join()
-        if t.get_result() != 'ok':
+        result=t.get_result()
+        if result != 'ok':
             operationRecord.status='有异常'
             operationRecord.message+=result+'$$'
             operationRecord.save()
@@ -45,7 +64,6 @@ def collectStat(clusterListCollect):
     else:
         operationRecord.status='已结束'
     operationRecord.finish_time=getNow()
-    operationRecord.message+=','.join(clusterResult)
     operationRecord.save()
     ctl.status='正常'
     ctl.save()

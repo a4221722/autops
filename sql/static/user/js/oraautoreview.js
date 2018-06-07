@@ -330,9 +330,13 @@ var allawr = {
 		})
 
 		$('#btn_generate_snap').on('click',function() {
+			var _this = $(this);
+			_this.prop('disabled',true)
 			var cluster_name = $('#cluster_name_select').next().find('.filter-option').html();
 			$.getJSON('/generatesnap/',{cluster_name},function(data) {
 				alert(data.msg);
+			}).always(function() {
+				$('#btn_generate_snap').prop('disabled',false)
 			})
 		})
 	},
