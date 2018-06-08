@@ -31,7 +31,7 @@
 		<td>统计信息</td>
 		<td>{{ optDict.统计信息_收集.0 }}</td>
 		<td>
-			<button type="button" data-role="sync_dict_btn" class="btn btn-primary" data-toggle="modal" data-target="#colc_modal">收集</button>
+				<button type="button" data-role="sync_dict_btn" class="btn btn-primary" {% if optDict.统计信息_收集.1  == '进行中' %}disabled{% endif %} data-toggle="modal" data-target="#colc_modal">收集</button>
 		</td>
 		<td>{{ optDict.统计信息_收集.1 }}</td>
 	</tr>
