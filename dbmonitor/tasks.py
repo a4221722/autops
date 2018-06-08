@@ -51,11 +51,11 @@ def collectStat(clusterListCollect):
         result=t.get_result()
         if result != 'ok':
             operationRecord.status='有异常'
-            operationRecord.message+=result+'$$'
+            operationRecord.message+=getNow()+' - '+result+'$$'
             operationRecord.save()
             continue
         else:
-            operationRecord.message+='收集完毕.$$'
+            operationRecord.message+=getNow()+' - '+'收集完毕.$$'
             operationRecord.save()
             continue
 
