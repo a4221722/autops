@@ -286,16 +286,6 @@ def detail(request, workflowId):
     PAGE_LIMIT = 12
     pageNo = 0
 
-    loginUser = request.session.get('login_username', False)
-    workflowDetail = get_object_or_404(workflow, pk=workflowId)
-    if workflowDetail.status in (Const.workflowStatus['finish'], Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']):
-        listResult = json.loads(workflowDetail.execute_result)
-    else:
-        if workflowDetail.review_content:
-            listResult = json.loads(workflowDetail.review_content)
-        else:
-            listResult=[]
-    pages = math.ceil(len(listResult)/PAGE_LIMIT)
     if 'pageNo' in request.GET:
         pageNo = min(int(request.GET['pageNo']),pages-1)
     else:
@@ -304,8 +294,22 @@ def detail(request, workflowId):
         pageNo = 0
     offset = pageNo * PAGE_LIMIT
     limit = offset + PAGE_LIMIT
+
+    loginUser = request.session.get('login_username', False)
+    workflowDetail = get_object_or_404(workflow, pk=workflowId)
+    if workflowDetail.status in (Const.workflowStatus['finish'], Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']):
+        try:
+            listResult = json.loads(workflowDetail.execute_result)
+            listResult.sort(key=_mapResultSt)
+        except Exception as err:
+            listResult = []
+    else:
+        if workflowDetail.review_content:
+            listResult = json.loads(workflowDetail.review_content)
+        else:
+            listResult=[]
+    pages = math.ceil(len(listResult)/PAGE_LIMIT)
     pageRange = range(pageNo,pageNo+min(4,pages-pageNo)+1)
-    listResult.sort(key=_mapResultSt)
     listContent = listResult[offset:limit]
     #for content in listContent:
     #    content['sql'] = content['sql'].replace('\n','<br>')
