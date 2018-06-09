@@ -503,34 +503,34 @@ def queryora(request):
     before_range_num = 4
     if page < 1:
         page = 1
-
-    sqlContent = sql_query.strip().rstrip(';')
-    if len(sqlContent) == 0:
-        context = {'errMsg':'sql内容不能为空'}
-        return render(request,'error.html',context)
-    finalStatus,msg,headerList,queryResult = daoora.query(logon_user,clusterName,sqlContent)
-    paginator = Paginator(queryResult, 10)
-    try:
-        queryResultP = paginator.page(page)
-    except (EmptyPage,InvalidPage,PageNotAnInteger):
-        queryResultP = paginator.page(1)
-    if page >= after_range_num:
-        page_range = paginator.page_range[page-after_range_num:page+before_range_num]
-    else:
-        page_range = paginator.page_range[0:int(page)+before_range_num]
-    if finalStatus != '执行结束':
-        context = {'errMsg':msg}
-        return render(request, 'error.html', context)
-    header_list = headerList
-    query_result_p = []
-    for row in queryResultP:
-        strRow = []
-        for i in range(0,len(row)):
-            try:
-                strRow.append(str(row[i]))
-            except:
-                strRow.append('byte data type')
-        query_result_p.append(strRow)
+    if sql_query:
+        sqlContent = sql_query.strip().rstrip(';')
+        if len(sqlContent) == 0:
+            context = {'errMsg':'sql内容不能为空'}
+            return render(request,'error.html',context)
+        finalStatus,msg,headerList,queryResult = daoora.query(logon_user,clusterName,sqlContent)
+        paginator = Paginator(queryResult, 10)
+        try:
+            queryResultP = paginator.page(page)
+        except (EmptyPage,InvalidPage,PageNotAnInteger):
+            queryResultP = paginator.page(1)
+        if page >= after_range_num:
+            page_range = paginator.page_range[page-after_range_num:page+before_range_num]
+        else:
+            page_range = paginator.page_range[0:int(page)+before_range_num]
+        if finalStatus != '执行结束':
+            context = {'errMsg':msg}
+            return render(request, 'error.html', context)
+        header_list = headerList
+        query_result_p = []
+        for row in queryResultP:
+            strRow = []
+            for i in range(0,len(row)):
+                try:
+                    strRow.append(str(row[i]))
+                except:
+                    strRow.append('byte data type')
+            query_result_p.append(strRow)
     currentMenu='queryora'
     return render(request, 'queryora.html', locals())
 
