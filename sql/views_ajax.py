@@ -122,7 +122,6 @@ def authenticateEntry(request):
 #Oracle SQL简单审核
 @csrf_exempt
 def orasimplecheck(request):
-
     if request.is_ajax():
         sqlContent = request.POST.get('sql_content')
         clusterName = request.POST.get('cluster_name')
@@ -146,12 +145,17 @@ def orasimplecheck(request):
         return HttpResponse(json.dumps(finalResult), content_type='application/json')
     sqlContent = sqlContent.rstrip(';')
     #使用explain plan进行自动审核
-    resultList = daoora.sqlAutoreview(sqlContent, clusterName)
-    for result in resultList:
-        if result['stage'] != 'CHECKED':
-            finalResult['status'] = 'error'
-            finalResult['msg'] = result['errormessage']+' '+result['sql']
-            return HttpResponse(json.dumps(finalResult), content_type='application/json')
+    try:
+        resultList = daoora.sqlAutoreview(sqlContent, clusterName)
+    except Exception as err:
+        finalResult['status'] = 'error'
+        finalResult['msg'] = str(err)
+    else:
+        for result in resultList:
+            if result['stage'] != 'CHECKED':
+                finalResult['status'] = 'error'
+                finalResult['msg'] = result['errormessage']+' '+result['sql']
+                #return HttpResponse(json.dumps(finalResult), content_type='application/json')
     #要把result转成JSON存进数据库里，方便SQL单子详细信息展示
     return HttpResponse(json.dumps(finalResult), content_type='application/json')
 

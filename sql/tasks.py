@@ -78,14 +78,31 @@ def oraAutoReview(workflowId):
     workflowDetail = workflow.objects.get(id=workflowId)
     sqlContent = workflowDetail.sql_content
     clusterNameStr = workflowDetail.cluster_name
-    parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
-    jsonResult = json.dumps(parseResult)
-    workflowStatus = Const.workflowStatus['manreviewing']
+    try:
+        parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
+    except Exception as err:
+        workflowStatus = Const.workflowStatus['manexec']
+        jsonResult = json.dumps([{
+            'clustername':workflowDetail.cluster_name,
+            'id':1,
+            'statge':'UNCHECKED',
+            'errlevel':None,
+            'stagestatus':'等待人工确认',
+            'errormessgae':'等待人工确认',
+            'sql':workflowDetail.sql_content,
+            'est_rows':0,
+            'sequence':1,
+            'backup_dbname':None,
+            'execute_time':0,
+            'real_rows':0}])
+    else:
+        jsonResult = json.dumps(parseResult)
+        workflowStatus = Const.workflowStatus['manreviewing']
     
-    for ret in parseResult:
-        if ret['stage'] == 'UNCHECKED':
-            workflowStatus = Const.workflowStatus['autoreviewwrong']
-            break
+        for ret in parseResult:
+            if ret['stage'] == 'UNCHECKED':
+                workflowStatus = Const.workflowStatus['autoreviewwrong']
+                break
+        workflowDetail.review_content = jsonResult
     workflowDetail.status = workflowStatus
-    workflowDetail.review_content = jsonResult
     workflowDetail.save()

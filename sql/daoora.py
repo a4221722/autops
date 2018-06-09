@@ -203,7 +203,7 @@ class DaoOra(object):
                         rowsAffected=row[0]
                 elif updatePattern.match(sql.lower()):
                     matchResult=updatePattern.match(sql.lower())
-                    estSql = 'select count(*) from '+matchResult.group(2)+' '+matchResult.group(3)
+                    estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
                     cursor.execute(estSql)
                     for row in cursor:
                         rowsAffected=row[0]
