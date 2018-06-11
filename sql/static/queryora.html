@@ -5,7 +5,7 @@
     <div class="row clearfix">
         <form action="/queryora/" method="POST" id="queryOraForm">
             <div class="col-md-8 column">
-                <textarea id="sql_content" name="sql_content" value="{% if sql_content|length > 0 %}{{sql_content}} {% endif %}" class="form-control sql-textarea sql-query-textarea" data-name="SQL内容" placeholder="请在此提交单条SQL，请以分号结尾。例如：select content from user.t1 where id=1; " rows=20 required>{% if sql_content|length > 0 %}{{sql_content}} {% endif %}</textarea>
+                <textarea id="sql_content" name="sql_content" value="{% if sql_content|length > 0 %}{{sql_content}} {% endif %}" class="form-control sql-textarea sql-query-textarea" data-name="SQL内容" placeholder="请在此提交SQL，请以分号结尾。例如：select content from user.t1 where id=1;如有多条sql，鼠标选中要执行的sql " rows=20 required>{% if sql_content|length > 0 %}{{sql_content}} {% endif %}</textarea>
             </div>
             <input type="hidden" name="sql_query" id="real_sql_content">
                 </select>

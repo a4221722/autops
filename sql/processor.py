@@ -20,7 +20,7 @@ leftMenuBtnsSuper = (
                    #{'key':'workflowconfig',     'name':'所有工单管理',       'url':'/admin/sql/workflow/',        'class':'glyphicon glyphicon-list-alt'},
 )
 leftMenuBtnsDoc = (
-                   {'key':'dbaprinciples',     'name':'SQL审核必读',       'url':'/dbaprinciples/',        'class':'glyphicon glyphicon-book'},
+                   {'key':'dbaprinciples',     'name':'使用者必读',       'url':'/dbaprinciples/',        'class':'glyphicon glyphicon-book'},
 #                   {'key':'charts',     'name':'统计图表展示',       'url':'/charts/',        'class':'glyphicon glyphicon-file'},
 )
 
