@@ -12,8 +12,8 @@ from .models import users,  workflow, ora_primary_config, ora_tab_privs
 
 
 class ora_primary_configAdmin(admin.ModelAdmin):
-    list_display = ('id', 'cluster_name','primary_host','primary_port','primary_srv','primary_user','standby_host','standby_port','standby_srv','create_time', 'update_time')
-    search_fields = ['id', 'cluster_name','primary_host','primary_port','primary_srv','primary_user','standby_host','standby_port','standby_srv','create_time', 'update_time']
+    list_display = ('id', 'cluster_name','primary_host','primary_port','primary_srv','primary_user','standby_host','standby_port','standby_srv','create_time', 'dict_time')
+    search_fields = ['id', 'cluster_name','primary_host','primary_port','primary_srv','primary_user','standby_host','standby_port','standby_srv','create_time', 'dict_time']
 
 class workflowAdmin(admin.ModelAdmin):
     list_per_page=5
