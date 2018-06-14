@@ -250,7 +250,7 @@ var addRoleFunc = {
 				$schema_select.html(schemaHTML);
 				$('#schema_name_block').removeClass('hide');
 				addRoleFunc.getTableList(cluster,$schema_select.val(),window.currentOper)
-				$schema_select.on('change',function() {
+				$schema_select.off('change.schema_select').on('change.schema_select',function() {
 					addRoleFunc.getTableList(cluster,$schema_select.val(),window.currentOper);
 				})
 			}else {
