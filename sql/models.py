@@ -66,7 +66,7 @@ class workflow(models.Model):
     #is_backup = models.IntegerField('是否备份，0为否，1为是', choices=((0,0),(1,1)))
     is_backup = models.CharField('是否备份', choices=(('否','否'),('是','是')), max_length=20)
     review_content = models.TextField('自动审核内容的JSON格式')
-    cluster_name = models.CharField('集群名称', max_length=50)     #master_config表的cluster_name列的外键
+    cluster_name = models.CharField('集群名称', max_length=500)     #master_config表的cluster_name列的外键
     reviewok_time = models.DateTimeField('人工审核通过的时间', null=True, blank=True)
     sql_content = models.TextField('具体sql内容')
     execute_result = models.TextField('执行结果的JSON格式')
@@ -82,7 +82,7 @@ class workflow(models.Model):
 
 #储存所有的表名
 class ora_tables(models.Model):
-    cluster_name = models.CharField('表名', max_length=60,null=False)
+    instance_id = models.IntegerField('实例id', null=False)
     schema_name = models.CharField('schema名', max_length=40,null=False)
     table = models.CharField('表名', max_length=40,null=False) #格式为schema.table
     create_time = models.DateTimeField('创建时间', auto_now_add=True)
@@ -90,7 +90,7 @@ class ora_tables(models.Model):
     def __str__(self):
         return self.cluster_name+'.'+self.table
     class Meta:
-        unique_together = (("cluster_name","schema_name","table"),)
+        unique_together = (("instance_id","schema_name","table"),)
         verbose_name = u'表数据字典'
         verbose_name_plural = u'表数据字典'
 

@@ -39,7 +39,7 @@ def syncDictData(clusterListSync):
             continue
         for table in tableList:
             try:
-                ora_tables(cluster_name=clusterName,schema_name=table[0], table=table[1]).save()
+                ora_tables(instance_id=primary.id,schema_name=table[0], table=table[1]).save()
             except IntegrityError:
                 operationRecord.message+=table[0]+'.'+table[1]+'已存在'+'$$'
                 operationRecord.save()

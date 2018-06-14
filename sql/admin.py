@@ -24,7 +24,6 @@ class workflowAdmin(admin.ModelAdmin):
 class usersCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(usersCreationForm, self).__init__(*args, **kwargs)
-        self.fields['email'].required = True
         self.fields['display'].required = True
         self.fields['role'].required = True
 
@@ -32,7 +31,6 @@ class usersCreationForm(UserCreationForm):
 class usersChangeForm(UserChangeForm): 
     def __init__(self, *args, **kwargs):
         super(usersChangeForm, self).__init__(*args, **kwargs)
-        self.fields['email'].required = True
         self.fields['display'].required = True        
         self.fields['role'].required = True        
 

@@ -33,6 +33,7 @@ class DaoOra(object):
         self.primaryUser = listPrimaries[0].primary_user
         self.primaryPassword = prpCryptor.decrypt(listPrimaries[0].primary_password)
         self.charset = listPrimaries[0].charset
+        self.primaryId = listPrimaries[0].id
 
     def getStInfo(self,clusterName):
         listPrimaries = ora_primary_config.objects.filter(cluster_name=clusterName)
@@ -42,6 +43,7 @@ class DaoOra(object):
         self.standbyUser = listPrimaries[0].primary_user
         self.standbyPassword = prpCryptor.decrypt(listPrimaries[0].primary_password)
         self.charset = listPrimaries[0].charset
+        self.standbyId = listPrimaries[0].id
 
     #连进指定的Oracle实例里，读取所有schemas并返回
     def getAllSchemaByCluster(self,clusterName):
@@ -466,7 +468,7 @@ class DaoOra(object):
             for eqRow in eqResult:
                 if eqRow[1]:
                     try:
-                        filTab = ora_tables.objects.get(cluster_name=clusterName,schema_name=eqRow[0].lower(),table=eqRow[1].lower())
+                        filTab = ora_tables.objects.get(instance_id=self.primaryId,schema_name=eqRow[0].lower(),table=eqRow[1].lower())
                     except Exception as e:
                         print(str(e))
                         finalStatus = '数据字典过旧'
