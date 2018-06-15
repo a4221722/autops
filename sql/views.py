@@ -77,7 +77,7 @@ def allworkflow(request):
     elif navStatus == 'all' and role == '工程师':
         allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(engineer=loginUser).order_by('-create_time')
     elif navStatus == 'waitingforme':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man=loginUser) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec'],Const.workflowStatus['autoreviewwrong']), review_man=loginUser) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
     elif (role == '审核人' or loginUser == 'admin') and navStatus == 'finish':
         allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept'])).order_by('-create_time')
     elif role == '工程师':
