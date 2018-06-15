@@ -388,6 +388,10 @@ def manFinish(request):
 
 @csrf_exempt
 def privMod(request,operation):
+    loginUser = request.session.get('login_username', False)
+    if loginUser != 'admin':
+        context = {'errMsg': '无权限访问该页面'}
+        return render(request, 'error.html', context)
 
     hasTableId = [tab.table_id for tab in ora_tab_privs.objects.filter(username = request.GET.get('username'))]
     if operation == 'add':
@@ -401,15 +405,17 @@ def privMod(request,operation):
     table_list = []
     table_dict = {}
     if not clusterName and not schema:
-        cluster_list = list(set([table.cluster_name for table in tables]))
+        cluster_list = [primary.cluster_name for primary in ora_primary_config.objects.all()]
         cluster_list.sort()
     elif clusterName and not schema:
-        schema_list = list(set([table.schema_name for table in tables.filter(cluster_name=clusterName)]))
+        instanceId = ora_primary_config.objects.get(cluster_name=clusterName).id
+        schema_list = list(set([table.schema_name for table in tables.filter(instance_id=instanceId)]))
         schema_list.sort()
     elif clusterName and  schema:
-        table_list = [table.table for table in tables.filter(cluster_name=clusterName).filter(schema_name=schema)]
+        instanceId = ora_primary_config.objects.get(cluster_name=clusterName).id
+        table_list = [table.table for table in tables.filter(instance_id=instanceId).filter(schema_name=schema)]
         table_dict = {}
-        for table in tables.filter(cluster_name=clusterName).filter(schema_name=schema).order_by('table'):
+        for table in tables.filter(instance_id=instanceId).filter(schema_name=schema).order_by('table'):
             table_dict[table.id] = table.table
 
 
@@ -418,6 +424,10 @@ def privMod(request,operation):
 
 @csrf_exempt
 def privCommit(request,operation):
+    loginUser = request.session.get('login_username', False)
+    if loginUser != 'admin':
+        context = {'errMsg': '无权限访问该页面'}
+        return render(request, 'error.html', context)
     username = request.POST.get('username')
     tabList = json.loads(request.POST.get('table_list'))
     status = 'saved'

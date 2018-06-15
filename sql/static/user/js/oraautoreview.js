@@ -237,7 +237,7 @@ var addRoleFunc = {
 		}).fail(function() {
 			alert('Interface call failed');
 		})
-		$cluster_select.on('change',function() {
+		$cluster_select.off('change.cluster_select').on('change.cluster_select',function() {
 			addRoleFunc.getSchemaList($cluster_select.val(),window.currentOper);
 		})
 	},

@@ -6,6 +6,6 @@
 .DS_Store
 archer/settings.py.github
 archer/settings.py.dev
-sql/migrations/
+#sql/migrations/
 awr/*.html
 __pycache__/*
