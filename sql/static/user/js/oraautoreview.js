@@ -185,14 +185,22 @@ var addRoleFunc = {
 		})
 		$('#add_role_submit').on('click',function() {
 			var table_list = [];
+			var extra_inst_list = [];
 			var $table_select = $('#table_select');
+			var $extra_inst_list = $('#extra_inst_list');
+			
 			$table_select.find('input[type="checkbox"]:checked').each(function() {
 				var item = $(this);
 				table_list.push(item.val());
 			})
+			$extra_inst_list.find('input[type="checkbox"]:checked').each(function() {
+				var item = $(this);
+				extra_inst_list.push(item.val());
+			})
 			$.post('/privcommit/'+window.currentOper+'/',{
 				username:$('#add_role_username').val(),
 				table_list:JSON.stringify(table_list),
+				extra_inst_list:JSON.stringify(extra_inst_list)
 			},function(data){
 				alert(data.msg);
 				//if(data.status==="saved") {
@@ -225,10 +233,15 @@ var addRoleFunc = {
 		// filled schema_select
 		$('#add_role_username').val(window.username);
 		var $cluster_select = $('#cluster_select');
+		var $extra_inst_list = $('#extra_inst_list');
+		var cluster_list =[];
 		$.getJSON('/privmod/'+window.currentOper+'/?username='+window.username,function(data) {
 			if(data.cluster_list) {
+				cluster_list = data.cluster_list;
 				var clusterHTML = addRoleFunc.getOptionHTML(data.cluster_list);
+				var extraInitListHtml = addRoleFunc.getExtraInitLIst(data.cluster_list,data.cluster_list[0]);
 				$cluster_select.html(clusterHTML);
+				$extra_inst_list.html(extraInitListHtml);
 				// init schema list
 				addRoleFunc.getSchemaList($cluster_select.val(),window.currentOper);
 			}else {
@@ -239,6 +252,9 @@ var addRoleFunc = {
 		})
 		$cluster_select.off('change.cluster_select').on('change.cluster_select',function() {
 			addRoleFunc.getSchemaList($cluster_select.val(),window.currentOper);
+			
+			var extraInitListHtml = addRoleFunc.getExtraInitLIst(cluster_list,$(this).val());
+			$extra_inst_list.html(extraInitListHtml);
 		})
 	},
 	
@@ -288,6 +304,13 @@ var addRoleFunc = {
 		})
 		return optionHTML;
 	},
+	getExtraInitLIst(list,val) {
+		var _html = '';
+		list.filter(function(item,index){return item!==val}).forEach(function(item){
+			_html+= '<p><input type="checkbox" value="'+item+'">'+item+'</p>'
+		})
+		return _html;
+	}
 }
 
 function fillQueryOraPage() {

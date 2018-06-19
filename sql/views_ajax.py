@@ -429,7 +429,30 @@ def privCommit(request,operation):
         context = {'errMsg': '无权限访问该页面'}
         return render(request, 'error.html', context)
     username = request.POST.get('username')
-    tabList = json.loads(request.POST.get('table_list'))
+    table_list = request.POST.get('table_list')
+    if table_list:
+        tabList = json.loads(table_list)
+    else:
+        status = 'error'
+        msg = '选择为空'
+        result = {'status':status,'msg':msg}
+        return HttpResponse(json.dumps(result), content_type='application/json')
+    extra_inst_list = request.POST.get('extra_inst_list')
+    if extra_inst_list:
+        extraInstList = json.loads(extra_inst_list)
+    #if len(extraInstList) > 0:
+        oriTabList = tabList
+        for extraInst in extraInstList:
+            for i in range(0,len(oriTabList)):
+                table_id = oriTabList[i]
+                oraTab = ora_tables.objects.get(id = int(table_id))
+                instance_id = ora_primary_config.objects.get(cluster_name=extraInst).id
+                try:
+                    extraId = ora_tables.objects.get(instance_id = instance_id,schema_name=oraTab.schema_name,table=oraTab.table).id
+                except Exception as err:
+                    pass
+                else:
+                    tabList.append(extraId)
     status = 'saved'
     msg = '保存成功'
     for table_id in tabList:

@@ -15,13 +15,13 @@ leftMenuBtnsSuper = (
                    {'key':'privconfig',       'name':'用户配置',      'url':'/privconfig/',      'class':'glyphicon glyphicon-th'},
     {'key': 'datasync', 'name': '数据管理', 'url': '/datasync/', 'class': 'glyphicon glyphicon-th-large'},
     {'key': 'allawr', 'name': 'awr报告', 'url': '/allawr/', 'class': 'glyphicon glyphicon-th-list'},
+    {'key':'charts',     'name':'统计图表展示',       'url':'/charts/',        'class':'glyphicon glyphicon-file'},
                    #{'key':'oraprimaryconfig',       'name':'Oracle主库地址配置',      'url':'/admin/sql/ora_primary_config/',      'class':'glyphicon glyphicon-user'},
                    #{'key':'userconfig',         'name':'用户权限配置',       'url':'/admin/sql/users/',        'class':'glyphicon glyphicon-th-large'},
                    #{'key':'workflowconfig',     'name':'所有工单管理',       'url':'/admin/sql/workflow/',        'class':'glyphicon glyphicon-list-alt'},
 )
 leftMenuBtnsDoc = (
                    {'key':'dbaprinciples',     'name':'使用者必读',       'url':'/dbaprinciples/',        'class':'glyphicon glyphicon-book'},
-#                   {'key':'charts',     'name':'统计图表展示',       'url':'/charts/',        'class':'glyphicon glyphicon-file'},
 )
 
 
