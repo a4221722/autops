@@ -5,7 +5,7 @@
 .idea/
 .DS_Store
 archer/settings.py.github
-archer/settings.py.dev
+archer/settings.py
 #sql/migrations/
 awr/*.html
 __pycache__/*
