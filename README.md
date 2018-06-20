@@ -30,3 +30,5 @@ export C_FORCE_ROOT=1
 python manage.py runserver 0.0.0.0:8080
 python manage.py celery worker --loglevel=info --autoreload
 ````
+或使用gunicorn+nginx启动
+./startup.sh
