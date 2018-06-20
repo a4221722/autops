@@ -417,7 +417,8 @@ class DaoOra(object):
                        and a.object_name = d.index_name(+)
                        and a.object_owner = d.OWNER(+)""" )
                 eqResult = crPr.fetchall()
-                if len(eqResult) <= 2 and (row[1] is None for row in eqResult):
+                print(eqResult)
+                if len(eqResult) <= 2 and not (row[1] is not None for row in eqResult):
                     sqlContent = sqlContent
                 else:
                     sqlContent = 'select * from ('+sqlContent+') where rownum <= 200'
