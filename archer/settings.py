@@ -101,7 +101,7 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'sql/static')
 
 #扩展django admin里users字段用到，指定了sql/models.py里的class users
 AUTH_USER_MODEL="sql.users"
