@@ -26,7 +26,7 @@ users._meta.get_field('is_active').default = False # ldap default can't login, n
 
 #线上oracle地址:
 class ora_primary_config(models.Model):
-    cluster_name = models.CharField('集群名称',max_length=50,unique=True)
+    cluster_name = models.CharField('实例名称',max_length=50,unique=True)
     primary_host = models.CharField('主库地址',max_length=200)
     primary_port = models.IntegerField('主库端口',default=1521)
     primary_srv = models.CharField('主库service name',max_length=100)

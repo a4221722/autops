@@ -183,7 +183,10 @@ class DaoOra(object):
             for row in result:
                 crPr.callproc('DBMS_STATS.GATHER_TABLE_STATS',keywordParameters={'OWNNAME':row[0],'TABNAME':row[1],'ESTIMATE_PERCENT':row[2],'METHOD_OPT':'for all columns size repeat','degree':8})#,'cascade':True})
         except Exception as err:
-            return(row[0]+'.'+row[1]+': '+str(err))
+            if row:
+                return(row[0]+'.'+row[1]+': '+str(err))
+            else:
+                return(str(err))
         else:
             return('ok')
 

@@ -92,16 +92,19 @@ def allAwr(request):
             #return HttpResponseRedirect('/awrdisplay/?awrPath='+awrPath)
     return render(request,'allawr.html',locals())
 
+#awr快照和报告展示页面
 def awrDisplay(request):
     awrPath = request.GET.get('awrPath')
     return render(request,awrPath)
 
+#生成快照
 def generateSnap(request):
     clusterName = request.GET['cluster_name']
     msg=daoora.snapshot(clusterName)
     result={'msg':msg}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
+#按照传入的实例名，收集统计信息
 def statCollect(request):
     primaries = ora_primary_config.objects.all().order_by('cluster_name')
     listCluster = [primary.cluster_name for primary in primaries]
