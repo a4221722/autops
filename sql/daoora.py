@@ -189,48 +189,12 @@ class DaoOra(object):
                     'real_rows':0}
                 sql = lastSql+sqlList[i]
                 cntSemi = sql.count("'")
-                if cntSemi % 2 != 0:
+                if cntSemi % 2 != 0 and i!=len(sqlList)-1:
                     lastSql+= sql+';'
                     continue
                 else:
                     lastSql = ''
                 sql = sql.strip()
-                if invalPattern.match(sql.lower()):
-                    rowsAffected = 1
-                elif inselPattern.match(sql.lower()):
-                    matchResult=inselPattern.match(sql.lower())
-                    estSql = 'select count(*) '+matchResult[4]
-                    cursor.execute(estSql)
-                    for row in cursor:
-                        rowsAffected=row[0]
-                elif updatePattern.match(sql.lower()):
-                    matchResult=updatePattern.match(sql.lower())
-                    estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
-                    cursor.execute(estSql)
-                    for row in cursor:
-                        rowsAffected=row[0]
-                elif selPattern.match(sql.lower()):
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=cntId
-                    RESULT_DICT['stage']='UNCHECKED'
-                    RESULT_DICT['stagestatus']='解析失败'
-                    RESULT_DICT['errormessage']="本页面不支持select操作"
-                    RESULT_DICT['sql']=sql
-                    resultList.append(RESULT_DICT)
-                    #resultList.append([1,'CHECKED',0,'parse error: ',"don't support select statement",sql,0,'0_0_1','test',0,0])
-                    continue
-                elif ddlPattern.match(sql.lower()):
-                    rowsAffected=0
-                else:
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=1
-                    RESULT_DICT['stage']='UNCHECKED'
-                    RESULT_DICT['stagestatus']='解析失败'
-                    RESULT_DICT['errormessage']="解析失败.请检查语法,查看sql审核必读后联系dba"
-                    RESULT_DICT['sql']=sql
-                    resultList.append(RESULT_DICT)
-                    #resultList.append([1,'CHECKED',0,'parsed error: ',"unsupported statement, contact DBA ",sql,0,'0_0_1','test',0,0])
-                    continue
                 epsql = 'explain plan for '+sql
                 try:
                     cursor.execute(epsql)
@@ -239,7 +203,7 @@ class DaoOra(object):
                     RESULT_DICT['id']=cntId
                     RESULT_DICT['stage']='UNCHECKED'
                     RESULT_DICT['stagestatus']='解析失败'
-                    RESULT_DICT['errormessage']="解析失败,请确认语法,查看sql审核必读后联系dba"
+                    RESULT_DICT['errormessage']=str(e)
                     RESULT_DICT['sql']=sql
                     resultList.append(RESULT_DICT)
                     #resultList.append([1,'CHECKED',0,'parsed error: ',str(e),sql,0,'0_0_1','test',0,0])
@@ -253,11 +217,43 @@ class DaoOra(object):
                     RESULT_DICT['stage']='CHECKED'
                     RESULT_DICT['stagestatus']='解析通过'
                     RESULT_DICT['sql']=sql
-                    RESULT_DICT['est_rows']=rowsAffected
                     RESULT_DICT['errormessage']="解析通过"
                     resultList.append(RESULT_DICT)
                     cntId += 1
                     #resultList.append([1,'CHECKED',0,'parse completed','parse compeleted',sql,rowsAffected,'0_0_1','test',0,0])
+                if invalPattern.match(sql.lower()):
+                    RESULT_DICT['est_rows']=1
+                elif inselPattern.match(sql.lower()):
+                    matchResult=inselPattern.match(sql.lower())
+                    estSql = 'select count(*) '+matchResult[4]
+                    cursor.execute(estSql)
+                    for row in cursor:
+                        RESULT_DICT['est_rows']=row[0]
+                elif updatePattern.match(sql.lower()):
+                    matchResult=updatePattern.match(sql.lower())
+                    estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
+                    cursor.execute(estSql)
+                    for row in cursor:
+                        RESULT_DICT['est_rows']=row[0]
+                elif selPattern.match(sql.lower()):
+                    RESULT_DICT['clustername']=clusterName
+                    RESULT_DICT['id']=cntId
+                    RESULT_DICT['stage']='UNCHECKED'
+                    RESULT_DICT['stagestatus']='解析失败'
+                    RESULT_DICT['errormessage']="本页面不支持select操作"
+                    RESULT_DICT['sql']=sql
+                    #resultList.append([1,'CHECKED',0,'parse error: ',"don't support select statement",sql,0,'0_0_1','test',0,0])
+                elif ddlPattern.match(sql.lower()):
+                    RESULT_DICT['est_rows']=0
+                else:
+                    RESULT_DICT['clustername']=clusterName
+                    RESULT_DICT['id']=1
+                    RESULT_DICT['stage']='UNCHECKED'
+                    RESULT_DICT['stagestatus']='解析失败'
+                    RESULT_DICT['errormessage']="解析失败.请检查语法,查看sql审核必读后联系dba"
+                    RESULT_DICT['sql']=sql
+                    #resultList.append([1,'CHECKED',0,'parsed error: ',"unsupported statement, contact DBA ",sql,0,'0_0_1','test',0,0])
+                resultList.append(RESULT_DICT)
             cursor.close()
             conn.close()
         return resultList
