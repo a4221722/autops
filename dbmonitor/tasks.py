@@ -88,6 +88,9 @@ def probeLoadGenSnap():
             host.snap_flag = 1
             host.save(keepPass=1)
         elif value < 10 and host.snap_flag == 1:
+            primaries = ora_primary_config.objects.filter(primary_host = host.host_ip)
+            for primary in primaries:
+                daoora.snapshot(primary.cluster_name)
             host.snap_flag = 0
             host.save(keepPass=1)
 
