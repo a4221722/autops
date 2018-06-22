@@ -300,6 +300,9 @@
 			<input type="hidden" id="workflowid" value="{{workflowDetail.id}}">
 				<input type="button" id="btnPerformed" data-toggle="modal" class="btn btn-default" data-target="#sql_list_view_modal" value="查看sql文本" />
 				<input type="button" id="btnPerformed" data-toggle="modal" class="btn btn-default" data-target="#message_view_modal" value="查看备注" />
+				{% if workflowDetail.status == '手工执行成功' or workflowDetail.status == '手工执行异常'%}
+					<input type="button" data-toggle="modal" class="btn btn-default" data-target="#show_manual_log" value="手工操作日志" />
+				{% endif %}
 			{% if loginUser in listAllReviewMen %}
 				{% if workflowDetail.status == '等待审核人审核' or workflowDetail.status == '自动审核不通过' %}
 					<form action="/execute/"  method="post" style="display:inline-block;">
@@ -322,10 +325,6 @@
 					<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
 					<input type="submit" id="btnRollback" class="btn btn-primary btn-default" data-loading-text="Loading..." value="查看回滚SQL" />
 				</form>
-				<form action="/cancel/" method="post" style="display:inline-block;">
-					{% csrf_token %}
-					<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
-				</form>
 				{% endif %}
 
 				{% if workflowDetail.status == '等待手工执行' %}
@@ -333,16 +332,10 @@
 					<form action="/cancel/" method="post" style="display:inline-block;">
 						{% csrf_token %}
 						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
+						<input type="button" id="btnCancel" onclick="execute(event,this)" class="btn btn-default" data-loading-text="Loading..." value="终止流程" />
 					</form>
 				{% endif %}
 
-				{% if workflowDetail.status == '手工执行成功' or workflowDetail.status == '手工执行异常'%}
-					<input type="button" data-toggle="modal" class="btn btn-default" data-target="#show_manual_log" value="手工操作日志" />
-					<form action="/cancel/" method="post" style="display:inline-block;">
-						{% csrf_token %}
-						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
-					</form>
-				{% endif %}
 				
 				<!--
 				{% if workflowDetail.status == '执行有异常' %}
