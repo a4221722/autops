@@ -74,7 +74,7 @@ def collectStat(clusterListCollect):
     ctl.status='正常'
     ctl.save()
 
-@periodic_task(run_every=30, name="probe_load_gen_snap", ignore_result=True)
+#@periodic_task(run_every=30, name="probe_load_gen_snap", ignore_result=True)
 def probeLoadGenSnap():
     hosts = os_host_config.objects.all()
     for host in hosts:
