@@ -16,6 +16,7 @@ selPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*(select).+$',re.DOTALL)
 inselPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*insert\s+into\s*(\S+\.{1}\S+).*(select.+)(from.+)$',re.DOTALL)
 invalPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*insert\s+into\s+(\S+\.{1}\S+).*values.+$',re.DOTALL)
 updatePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*update\s+(\S+\.{1}\S+.+)set\s+.+?(where.+)$',re.DOTALL)
+deletePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*delete\s+(from\s+)?(\S+\.{1}\S+.+?)(where.+)$',re.DOTALL)
 ddlPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*((create\s+(table|sequence|index))|(alter\s+(table|sequence|index))|(comment\s+on\s+(table|column)))\s+(\S+\.{1}\S+).+$',re.DOTALL)
 descPattern = re.compile(r'^\s*desc\s+(\S+\.{1}\S+)\s*$')
 showIndPattern = re.compile(r'^\s*show\s+index\s+from\s+(\S+\.{1}\S+)\s*$')
@@ -188,6 +189,7 @@ class DaoOra(object):
                     'execute_time':0,
                     'real_rows':0}
                 sql = lastSql+sqlList[i]
+                lastSql = ''
                 cntSemi = sql.count("'")
                 if cntSemi % 2 != 0 and i!=len(sqlList)-1:
                     lastSql+= sql+';'
@@ -218,20 +220,25 @@ class DaoOra(object):
                     RESULT_DICT['stagestatus']='解析通过'
                     RESULT_DICT['sql']=sql
                     RESULT_DICT['errormessage']="解析通过"
-                    resultList.append(RESULT_DICT)
                     cntId += 1
                     #resultList.append([1,'CHECKED',0,'parse completed','parse compeleted',sql,rowsAffected,'0_0_1','test',0,0])
                 if invalPattern.match(sql.lower()):
                     RESULT_DICT['est_rows']=1
                 elif inselPattern.match(sql.lower()):
                     matchResult=inselPattern.match(sql.lower())
-                    estSql = 'select count(*) '+matchResult[4]
+                    estSql = 'select count(*) '+matchResult[6]
                     cursor.execute(estSql)
                     for row in cursor:
                         RESULT_DICT['est_rows']=row[0]
                 elif updatePattern.match(sql.lower()):
                     matchResult=updatePattern.match(sql.lower())
                     estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
+                    cursor.execute(estSql)
+                    for row in cursor:
+                        RESULT_DICT['est_rows']=row[0]
+                elif deletePattern.match(sql.lower()):
+                    matchResult=deletePattern.match(sql.lower())
+                    estSql = 'select count(*) from '+matchResult.group(5)+' '+matchResult.group(6)
                     cursor.execute(estSql)
                     for row in cursor:
                         RESULT_DICT['est_rows']=row[0]

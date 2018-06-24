@@ -80,6 +80,7 @@ def oraAutoReview(workflowId):
     clusterNameStr = workflowDetail.cluster_name
     try:
         parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
+        print(parseResult)
     except Exception as err:
         workflowStatus = Const.workflowStatus['manexec']
         jsonResult = json.dumps([{
@@ -88,7 +89,7 @@ def oraAutoReview(workflowId):
             'statge':'UNCHECKED',
             'errlevel':None,
             'stagestatus':'等待人工确认',
-            'errormessgae':'等待人工确认',
+            'errormessage':str(err),
             'sql':workflowDetail.sql_content,
             'est_rows':0,
             'sequence':1,
@@ -103,6 +104,6 @@ def oraAutoReview(workflowId):
             if ret['stage'] == 'UNCHECKED':
                 workflowStatus = Const.workflowStatus['autoreviewwrong']
                 break
-        workflowDetail.review_content = jsonResult
+    workflowDetail.review_content = jsonResult
     workflowDetail.status = workflowStatus
     workflowDetail.save()

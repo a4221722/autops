@@ -154,7 +154,7 @@ def orasimplecheck(request):
         for result in resultList:
             if result['stage'] != 'CHECKED':
                 finalResult['status'] = 'error'
-                finalResult['msg'] = result['errormessage']+' '+result['sql']
+                finalResult['msg'] = result['errormessage']+' -- '+result['sql']
                 #return HttpResponse(json.dumps(finalResult), content_type='application/json')
     #要把result转成JSON存进数据库里，方便SQL单子详细信息展示
     return HttpResponse(json.dumps(finalResult), content_type='application/json')

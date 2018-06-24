@@ -74,24 +74,24 @@ def collectStat(clusterListCollect):
     ctl.status='正常'
     ctl.save()
 
-#@periodic_task(run_every=30, name="probe_load_gen_snap", ignore_result=True)
-def probeLoadGenSnap():
-    hosts = os_host_config.objects.all()
-    for host in hosts:
-        osObj = OsInf(host.host_ip,host.host_user,prpCryptor.decrypt(host.host_password),host.host_port)
-        value = float(osObj.getLoad())
-        timeDelt = datetime.datetime.now() - host.update_time
-        if (value >= 10 and host.snap_flag == 0)  or (value >= 10 and host.snap_flag == 1 and timeDelt.days*3600*24+timeDelt.seconds > 300):
-            primaries = ora_primary_config.objects.filter(primary_host = host.host_ip)
-            for primary in primaries:
-                daoora.snapshot(primary.cluster_name)
-            host.snap_flag = 1
-            host.save(keepPass=1)
-        elif value < 10 and host.snap_flag == 1:
-            primaries = ora_primary_config.objects.filter(primary_host = host.host_ip)
-            for primary in primaries:
-                daoora.snapshot(primary.cluster_name)
-            host.snap_flag = 0
-            host.save(keepPass=1)
+##@periodic_task(run_every=30, name="probe_load_gen_snap", ignore_result=True)
+#def probeLoadGenSnap():
+#    hosts = os_host_config.objects.all()
+#    for host in hosts:
+#        osObj = OsInf(host.host_ip,host.host_user,prpCryptor.decrypt(host.host_password),host.host_port)
+#        value = float(osObj.getLoad())
+#        timeDelt = datetime.datetime.now() - host.update_time
+#        if (value >= 10 and host.snap_flag == 0)  or (value >= 10 and host.snap_flag == 1 and timeDelt.days*3600*24+timeDelt.seconds > 300):
+#            primaries = ora_primary_config.objects.filter(primary_host = host.host_ip)
+#            for primary in primaries:
+#                daoora.snapshot(primary.cluster_name)
+#            host.snap_flag = 1
+#            host.save(keepPass=1)
+#        elif value < 10 and host.snap_flag == 1:
+#            primaries = ora_primary_config.objects.filter(primary_host = host.host_ip)
+#            for primary in primaries:
+#                daoora.snapshot(primary.cluster_name)
+#            host.snap_flag = 0
+#            host.save(keepPass=1)
 
 
