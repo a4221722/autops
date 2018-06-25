@@ -81,7 +81,7 @@ function show_sync_data() {
 }
 function selectedOpt() {
     var $table_select = $('#table_select,#table_select_colc');
-    $('#colc_modal,#sync_dict_modal').on('click','input[type="radio"]',function() {
+    $('#colc_modal,#sync_dict_modal,#add_role_content').on('click','input[type="radio"]',function() {
         var _this = $(this);
         changeSelectStatus($table_select,_this.attr('data-select'));
     })
