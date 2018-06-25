@@ -265,7 +265,7 @@ class DaoOra(object):
                                 parseDict['whereSt'] = str(tokensList[k]).rstrip(';')
                                 where_id = k
                                 break
-                    if not parseDict.get('tab') or not parseDict.get('whereSt'):
+                    if parseDict['operation'] in ('insert','delete','update') and (not parseDict.get('tab') or not parseDict.get('whereSt')):
                         RESULT_DICT['clustername']=clusterName
                         RESULT_DICT['id']=cntId
                         RESULT_DICT['stage']='UNCHECKED'
