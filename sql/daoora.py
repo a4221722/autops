@@ -8,6 +8,7 @@ from .aes_decryptor import Prpcrypt
 import datetime
 import re
 import json
+import sqlparse
 import pdb
 prpCryptor = Prpcrypt()
 commentPattern = re.compile(r'^.*((--)|(/\*.*\*/)).*$',re.DOTALL)
@@ -171,8 +172,8 @@ class DaoOra(object):
                 continue
             else:
                 cursor = conn.cursor()
-            sqlList = sqlContent.rstrip(';').replace('\r\n','\n').split(';')
-            lastSql = ''
+            sqlList = sqlparse.split(sqlContent) #sqlContent.rstrip(';').replace('\r\n','\n').split(';')
+            #lastSql = ''
             cntId = 1
             for i in range(0,len(sqlList)):
                 RESULT_DICT = {
@@ -188,15 +189,15 @@ class DaoOra(object):
                     'backup_dbname':None,
                     'execute_time':0,
                     'real_rows':0}
-                sql = lastSql+sqlList[i]
-                lastSql = ''
-                cntSemi = sql.count("'")
-                if cntSemi % 2 != 0 and i!=len(sqlList)-1:
-                    lastSql+= sql+';'
-                    continue
-                else:
-                    lastSql = ''
-                sql = sql.strip()
+                #sql = lastSql+sqlList[i]
+                #lastSql = ''
+                #cntSemi = sql.count("'")
+                #if cntSemi % 2 != 0 and i!=len(sqlList)-1:
+                #    lastSql+= sql+';'
+                #    continue
+                #else:
+                #    lastSql = ''
+                sql = sqlList[i].strip().rstrip(';')
                 epsql = 'explain plan for '+sql
                 try:
                     cursor.execute(epsql)
@@ -222,44 +223,108 @@ class DaoOra(object):
                     RESULT_DICT['errormessage']="解析通过"
                     cntId += 1
                     #resultList.append([1,'CHECKED',0,'parse completed','parse compeleted',sql,rowsAffected,'0_0_1','test',0,0])
-                if invalPattern.match(sql.lower()):
-                    RESULT_DICT['est_rows']=1
-                elif inselPattern.match(sql.lower()):
-                    matchResult=inselPattern.match(sql.lower())
-                    estSql = 'select count(*) '+matchResult[6]
-                    cursor.execute(estSql)
-                    for row in cursor:
-                        RESULT_DICT['est_rows']=row[0]
-                elif updatePattern.match(sql.lower()):
-                    matchResult=updatePattern.match(sql.lower())
-                    estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
-                    cursor.execute(estSql)
-                    for row in cursor:
-                        RESULT_DICT['est_rows']=row[0]
-                elif deletePattern.match(sql.lower()):
-                    matchResult=deletePattern.match(sql.lower())
-                    estSql = 'select count(*) from '+matchResult.group(5)+' '+matchResult.group(6)
-                    cursor.execute(estSql)
-                    for row in cursor:
-                        RESULT_DICT['est_rows']=row[0]
-                elif selPattern.match(sql.lower()):
+                parseResult = sqlparse.parse(sql)[0]
+                parseDict = {}
+                tokensList = parseResult.tokens
+                for i in range(0,len(tokensList)):
+                    if str(tokensList[i].ttype) in ('Token.Keyword.DML','Token.Keyword.DDL'):
+                        parseDict['operation'] = tokensList[i].value.lower()
+                        opt_id = i
+                        break
+                    elif str(tokensList[i].ttype) == 'Token.Keyword' and tokensList[i].value in ('grant','comment'):
+                        parseDict['operation'] = tokensList[i].value.lower()
+                        opt_id = i
+                        break
+                if parseDict['operation'] not in ('insert','update','delete','create','alter','drop','grant','comment'):
                     RESULT_DICT['clustername']=clusterName
                     RESULT_DICT['id']=cntId
                     RESULT_DICT['stage']='UNCHECKED'
                     RESULT_DICT['stagestatus']='解析失败'
-                    RESULT_DICT['errormessage']="本页面不支持select操作"
+                    RESULT_DICT['errormessage']='不支持的操作: '+parseDict['operation']
                     RESULT_DICT['sql']=sql
-                    #resultList.append([1,'CHECKED',0,'parse error: ',"don't support select statement",sql,0,'0_0_1','test',0,0])
-                elif ddlPattern.match(sql.lower()):
-                    RESULT_DICT['est_rows']=0
+                    resultList.append(RESULT_DICT)
+                    #resultList.append([1,'CHECKED',0,'parsed error: ',str(e),sql,0,'0_0_1','test',0,0])
+                    conn.rollback()
+                    cursor.close()
+                    conn.close()
+                    return resultList
+
+                if parseDict['operation'] in ('insert','delete','update'):
+                    for j in range(i,len(tokensList)):
+                        if not tokensList[j].ttype:
+                            if str(tokensList[j].tokens[0].ttype) == 'Token.Name':
+                                parseDict['tab'] = str(tokensList[j])
+                                tab_id = j
+                                break
+                    for k in range(j,len(tokensList)):
+                        if str(tokensList[k].ttype) == 'Token.Keyword' and tokensList[k].value.lower()=='values' and parseDict['operation']=='insert':
+                            parseDict['operation']='instval'
+                            break
+                        elif not tokensList[k].ttype:
+                            if str(tokensList[k].tokens[0].ttype) == 'Token.Keyword' and tokensList[k].tokens[0].value.lower()=='where':
+                                parseDict['whereSt'] = str(tokensList[k]).rstrip(';')
+                                where_id = k
+                                break
+                    if not parseDict.get('tab') or not parseDict.get('whereSt'):
+                        RESULT_DICT['clustername']=clusterName
+                        RESULT_DICT['id']=cntId
+                        RESULT_DICT['stage']='UNCHECKED'
+                        RESULT_DICT['stagestatus']='解析失败'
+                        RESULT_DICT['errormessage']='缺少表名或where子句'
+                        RESULT_DICT['sql']=sql
+                        resultList.append(RESULT_DICT)
+                        #resultList.append([1,'CHECKED',0,'parsed error: ',str(e),sql,0,'0_0_1','test',0,0])
+                        conn.rollback()
+                        cursor.close()
+                        conn.close()
+                        return resultList
+                if parseDict['operation']=='instval':
+                    RESULT_DICT['est_rows']=1
+                elif parseDict['operation'] in ('insert','delete','update'):
+                    estSql = 'select count(*) from '+parseDict['tab']+' '+parseDict['whereSt']
+                    cursor.execute(estSql)
+                    for row in cursor:
+                        RESULT_DICT['est_rows']=row[0]
                 else:
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=1
-                    RESULT_DICT['stage']='UNCHECKED'
-                    RESULT_DICT['stagestatus']='解析失败'
-                    RESULT_DICT['errormessage']="解析失败.请检查语法,查看sql审核必读后联系dba"
-                    RESULT_DICT['sql']=sql
-                    #resultList.append([1,'CHECKED',0,'parsed error: ',"unsupported statement, contact DBA ",sql,0,'0_0_1','test',0,0])
+                    RESULT_DICT['est_rows']=0
+               # if invalPattern.match(sql.lower()):
+               #     RESULT_DICT['est_rows']=1
+               # elif inselPattern.match(sql.lower()):
+               #     matchResult=inselPattern.match(sql.lower())
+               #     estSql = 'select count(*) '+matchResult[6]
+               #     cursor.execute(estSql)
+               #     for row in cursor:
+               #         RESULT_DICT['est_rows']=row[0]
+               # elif updatePattern.match(sql.lower()):
+               #     matchResult=updatePattern.match(sql.lower())
+               #     estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
+               #     cursor.execute(estSql)
+               #     for row in cursor:
+               #         RESULT_DICT['est_rows']=row[0]
+               # elif deletePattern.match(sql.lower()):
+               #     matchResult=deletePattern.match(sql.lower())
+               #     estSql = 'select count(*) from '+matchResult.group(5)+' '+matchResult.group(6)
+               #     cursor.execute(estSql)
+               #     for row in cursor:
+               #         RESULT_DICT['est_rows']=row[0]
+               # elif selPattern.match(sql.lower()):
+               #     RESULT_DICT['clustername']=clusterName
+               #     RESULT_DICT['id']=cntId
+               #     RESULT_DICT['stage']='UNCHECKED'
+               #     RESULT_DICT['stagestatus']='解析失败'
+               #     RESULT_DICT['errormessage']="本页面不支持select操作"
+               #     RESULT_DICT['sql']=sql
+               #     #resultList.append([1,'CHECKED',0,'parse error: ',"don't support select statement",sql,0,'0_0_1','test',0,0])
+               # elif ddlPattern.match(sql.lower()):
+               #     RESULT_DICT['est_rows']=0
+               # else:
+               #     RESULT_DICT['clustername']=clusterName
+               #     RESULT_DICT['id']=1
+               #     RESULT_DICT['stage']='UNCHECKED'
+               #     RESULT_DICT['stagestatus']='解析失败'
+               #     RESULT_DICT['errormessage']="解析失败.请检查语法,查看sql审核必读后联系dba"
+               #     RESULT_DICT['sql']=sql
+               #     #resultList.append([1,'CHECKED',0,'parsed error: ',"unsupported statement, contact DBA ",sql,0,'0_0_1','test',0,0])
                 resultList.append(RESULT_DICT)
             cursor.close()
             conn.close()
