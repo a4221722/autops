@@ -3,12 +3,15 @@ import json
 
 from .daoora import DaoOra
 from .getnow import getNow
-from .models import operation_record,operation_ctl,ora_primary_config,ora_tables,workflow
+from .models import operation_record,operation_ctl,ora_primary_config,ora_tables,workflow,users
 from .const import Const
 from celery import task
 from django.db.utils import IntegrityError
+from django.conf import settings
+from .sendmail import MailSender
 
 daoora=DaoOra()
+mailSender = MailSender()
 
 @task()
 def syncDictData(clusterListSync):
@@ -80,7 +83,6 @@ def oraAutoReview(workflowId):
     clusterNameStr = workflowDetail.cluster_name
     try:
         parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
-        print(parseResult)
     except Exception as err:
         workflowStatus = Const.workflowStatus['manexec']
         jsonResult = json.dumps([{
@@ -107,3 +109,21 @@ def oraAutoReview(workflowId):
     workflowDetail.review_content = jsonResult
     workflowDetail.status = workflowStatus
     workflowDetail.save()
+
+#获取当前请求url
+def _getDetailUrl(request):
+    scheme = request.scheme
+    #host = request.META['HTTP_HOST']
+    host = getattr(settings,'WAN_HOST')
+    return "%s://%s/detail/" % (scheme, host)
+
+@task()
+def mailDba(url,strTitle, strContent, emailList):
+#如果进入等待人工审核状态了，则根据settings.py里的配置决定是否给审核人发一封邮件提醒.
+    if hasattr(settings, 'MAIL_ON_OFF') == True:
+        if getattr(settings, 'MAIL_ON_OFF') == "on":
+                mailSender.sendEmail(strTitle, strContent, emailList)
+        else:
+            #不发邮件
+            pass
+

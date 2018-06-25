@@ -22,10 +22,10 @@ from .sendmail import MailSender
 from .aes_decryptor import Prpcrypt
 from .models import *
 from .getnow import getNow
-from .tasks import oraAutoReview
+from .tasks import oraAutoReview,mailDba
 
 daoora = DaoOra()
-mailSender = MailSender()
+#mailSender = MailSender()
 prpCryptor = Prpcrypt()
 
 configMap = {
@@ -250,23 +250,16 @@ def workflowSubmit(request):
     if data_change_type in ('数据修订','数据初始化') and sqlContent:
         oraAutoReview.delay(workflowId)
 
-    #如果进入等待人工审核状态了，则根据settings.py里的配置决定是否给审核人发一封邮件提醒.
-    if hasattr(settings, 'MAIL_ON_OFF') == True:
-        if getattr(settings, 'MAIL_ON_OFF') == "on":
-            url = _getDetailUrl(request) + str(workflowId) 
+    url = _getDetailUrl(request) + str(workflowId)
+    strTitle = "新的SQL上线工单提醒 # " + str(workflowId)
+    objEngineer = users.objects.get(username=engineer)
+    for reviewMan in listAllReviewMen:
+        if reviewMan == "":
+            continue
+        strContent = "发起人：" + engineer + "\n审核人：" + str(listAllReviewMen)  + "\n工单地址：" + url + "\n工单名称： " + workflowName+"\n原因:"+ reason+"\n备注说明: "+ message + "\n具体SQL：" + sqlContent
+        objReviewMan = users.objects.get(username=reviewMan)
+        mailDba.delay(url,strTitle, strContent, [objReviewMan.email])
 
-            #发一封邮件
-            strTitle = "新的SQL上线工单提醒 # " + str(workflowId)
-            objEngineer = users.objects.get(username=engineer)
-            for reviewMan in listAllReviewMen:
-                if reviewMan == "":
-                    continue
-                strContent = "发起人：" + engineer + "\n审核人：" + str(listAllReviewMen)  + "\n工单地址：" + url + "\n工单名称： " + workflowName+"\n原因:"+ reason+"\n备注说明: "+ message + "\n具体SQL：" + sqlContent
-                objReviewMan = users.objects.get(username=reviewMan)
-                mailSender.sendEmail(strTitle, strContent, [objReviewMan.email])
-        else:
-            #不发邮件
-            pass
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 
 
 
@@ -380,8 +373,10 @@ def execute(request):
             objEngineer = users.objects.get(username=engineer)
             strTitle = "SQL上线工单执行完毕 # " + str(workflowId)
             strContent = "发起人：" + engineer + "\n审核人：" + reviewMen + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus
-            mailSender.sendEmail(strTitle, strContent, [objEngineer.email])
-            mailSender.sendEmail(strTitle, strContent, getattr(settings, 'MAIL_REVIEW_DBA_ADDR'))
+            mailDba.delay(strTitle, strContent, [objEngineer.email])
+            mailDba.delay(strTitle, strContent, getattr(settings, 'MAIL_REVIEW_DBA_ADDR'))
+            #mailSender.sendEmail(strTitle, strContent, [objEngineer.email])
+            #mailSender.sendEmail(strTitle, strContent, getattr(settings, 'MAIL_REVIEW_DBA_ADDR'))
             #for reviewMan in listAllReviewMen:
             #    if reviewMan == "":
             #        continue
@@ -436,12 +431,14 @@ def cancel(request):
                     if reviewMan == "":
                         continue
                     objReviewMan = users.objects.get(username=reviewMan)
-                    mailSender.sendEmail(strTitle, strContent, [objReviewMan.email])
+                    mailDba.delay(strTitle, strContent, [objReviewMan.email])
+                    #mailSender.sendEmail(strTitle, strContent, [objReviewMan.email])
             else:
                 objEngineer = users.objects.get(username=engineer)
                 strTitle = "SQL上线工单被拒绝执行 # " + str(workflowId)
                 strContent = "发起人：" + engineer + "\n审核人：" + reviewMan + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus +"\n提醒：此工单被拒绝执行，请登陆重新提交或修改工单"
-                mailSender.sendEmail(strTitle, strContent, [objEngineer.email])
+                mailDba.delay(strTitle, strContent, [objEngineer.email])
+                #mailSender.sendEmail(strTitle, strContent, [objEngineer.email])
         else:
             #不发邮件
             pass
