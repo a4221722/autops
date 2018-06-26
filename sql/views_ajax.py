@@ -198,7 +198,6 @@ def syncldapuser(request):
     ldapconn.simple_bind_s(binddn, bind_password)
     ldapusers = ldapconn.search_s(basedn, ldap.SCOPE_SUBTREE, 'objectclass=*', attrlist=settings.AUTH_LDAP_USER_ATTRLIST)
     #ldap中username存在条目的第一个元素的uid中，定义的username_field不再使用，改为截取user_tag
-    #username_field = settings.AUTH_LDAP_USER_ATTR_MAP['username']
     display_field = settings.AUTH_LDAP_USER_ATTR_MAP['display']
     email_field = settings.AUTH_LDAP_USER_ATTR_MAP['email']
     count = 0

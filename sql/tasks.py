@@ -13,6 +13,16 @@ from .sendmail import MailSender
 daoora=DaoOra()
 mailSender = MailSender()
 
+from celery.signals import worker_process_init
+from multiprocessing import current_process
+
+@worker_process_init.connect
+def fix_multiprocessing(**kwargs):
+    try:
+        current_process()._config
+    except AttributeError:
+        current_process()._config = {'semprefix': '/mp'}
+
 @task()
 def syncDictData(clusterListSync):
     ctl = operation_ctl.objects.get(data_type='数据字典' ,opt_type='同步')

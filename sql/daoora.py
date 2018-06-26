@@ -154,7 +154,6 @@ class DaoOra(object):
             try:
                 conn=cx_Oracle.connect(primaryUser,primaryPassword,oraLink,encoding='gbk')
             except cx_Oracle.Error as e:
-                #resultList.append([1,'UNCHECKED',0,'Server connected error: ',str(e),None,0,'0_0_1','test',0,0])
                 resultList.append(
                 {
                     'clustername':clusterName,
@@ -189,14 +188,6 @@ class DaoOra(object):
                     'backup_dbname':None,
                     'execute_time':0,
                     'real_rows':0}
-                #sql = lastSql+sqlList[i]
-                #lastSql = ''
-                #cntSemi = sql.count("'")
-                #if cntSemi % 2 != 0 and i!=len(sqlList)-1:
-                #    lastSql+= sql+';'
-                #    continue
-                #else:
-                #    lastSql = ''
                 sql = sqlList[i].strip().rstrip(';')
                 epsql = 'explain plan for '+sql
                 try:
@@ -243,7 +234,6 @@ class DaoOra(object):
                     RESULT_DICT['errormessage']='不支持的操作: '+parseDict['operation']
                     RESULT_DICT['sql']=sql
                     resultList.append(RESULT_DICT)
-                    #resultList.append([1,'CHECKED',0,'parsed error: ',str(e),sql,0,'0_0_1','test',0,0])
                     conn.rollback()
                     cursor.close()
                     conn.close()
@@ -287,44 +277,6 @@ class DaoOra(object):
                         RESULT_DICT['est_rows']=row[0]
                 else:
                     RESULT_DICT['est_rows']=0
-               # if invalPattern.match(sql.lower()):
-               #     RESULT_DICT['est_rows']=1
-               # elif inselPattern.match(sql.lower()):
-               #     matchResult=inselPattern.match(sql.lower())
-               #     estSql = 'select count(*) '+matchResult[6]
-               #     cursor.execute(estSql)
-               #     for row in cursor:
-               #         RESULT_DICT['est_rows']=row[0]
-               # elif updatePattern.match(sql.lower()):
-               #     matchResult=updatePattern.match(sql.lower())
-               #     estSql = 'select count(*) from '+matchResult.group(4)+' '+matchResult.group(5)
-               #     cursor.execute(estSql)
-               #     for row in cursor:
-               #         RESULT_DICT['est_rows']=row[0]
-               # elif deletePattern.match(sql.lower()):
-               #     matchResult=deletePattern.match(sql.lower())
-               #     estSql = 'select count(*) from '+matchResult.group(5)+' '+matchResult.group(6)
-               #     cursor.execute(estSql)
-               #     for row in cursor:
-               #         RESULT_DICT['est_rows']=row[0]
-               # elif selPattern.match(sql.lower()):
-               #     RESULT_DICT['clustername']=clusterName
-               #     RESULT_DICT['id']=cntId
-               #     RESULT_DICT['stage']='UNCHECKED'
-               #     RESULT_DICT['stagestatus']='解析失败'
-               #     RESULT_DICT['errormessage']="本页面不支持select操作"
-               #     RESULT_DICT['sql']=sql
-               #     #resultList.append([1,'CHECKED',0,'parse error: ',"don't support select statement",sql,0,'0_0_1','test',0,0])
-               # elif ddlPattern.match(sql.lower()):
-               #     RESULT_DICT['est_rows']=0
-               # else:
-               #     RESULT_DICT['clustername']=clusterName
-               #     RESULT_DICT['id']=1
-               #     RESULT_DICT['stage']='UNCHECKED'
-               #     RESULT_DICT['stagestatus']='解析失败'
-               #     RESULT_DICT['errormessage']="解析失败.请检查语法,查看sql审核必读后联系dba"
-               #     RESULT_DICT['sql']=sql
-               #     #resultList.append([1,'CHECKED',0,'parsed error: ',"unsupported statement, contact DBA ",sql,0,'0_0_1','test',0,0])
                 resultList.append(RESULT_DICT)
             cursor.close()
             conn.close()
@@ -338,7 +290,9 @@ class DaoOra(object):
         reviewContent = json.loads(workflowDetail.review_content)
         resultList=[]
         finalStatus = '已正常结束'
-        for clusterName in clusterNameList:
+        for reviewRow in reviewContent:
+        #for clusterName in clusterNameList:
+            clusterName = reviewRow['clustername']
             clusterStatus = '已正常结束'
             listPrimaries = ora_primary_config.objects.filter(cluster_name=clusterName)
             primaryHost=listPrimaries[0].primary_host
@@ -353,85 +307,40 @@ class DaoOra(object):
             except Exception as e:
                 finalStatus = '执行有异常'
                 clusterStatus = '执行有异常'
-                resultList.append(
-                     {
-                        'clustername':clusterName,
-                        'id':1,
-                        'stage':'UNEXECUTED',
-                        'errlevel':0,
-                        'stagestatus':'连接服务器异常',
-                        'errormessage':str(e),
-                        'sql':'',
-                        'est_rows':0,
-                        'sequence':None,
-                        'backup_dbname':None,
-                        'execute_time':0,
-                        'real_rows':0})
-                #resultList.append([1,'UNCHECKED',0,'Server connected error: '+e,None,sql,0,'0_0_1','test',0,0])
+                reviewRow['stage']='UNEXECUTED'
+                reviewRow['stagestatus']='连接服务器异常'
+                reviewRow['errormessage']=str(e)
+                resultList.append(reviewRow)
                 continue
             else:
                 cursor = conn.cursor()
-            sqlList=workflowDetail.sql_content.rstrip(';').split(';')
-            #sqlList = sqlContent.rstrip(';').split(';')
-            lastSql = ''
-            cntId=1
-            for i in range(0,len(sqlList)):
-                RESULT_DICT = {
-                    'clustername':None,
-                    'id':1,
-                    'stage':None,
-                    'errlevel':0,
-                    'stagestatus':None,
-                    'errormessage':'',
-                    'sql':'',
-                    'est_rows':0,
-                    'sequence':None,
-                    'backup_dbname':None,
-                    'execute_time':0,
-                    'real_rows':0}
-                sql = lastSql+sqlList[i]
-                cntSemi = sql.count("'")
-                if cntSemi % 2 != 0:
-                    lastSql+= sql+';'
-                    continue
-                else:
-                    lastSql = ''
-                try:
-                    startTime=datetime.datetime.now()
-                    cursor.execute(sql)
-                except cx_Oracle.Error as e:
-                    finalStatus = '执行有异常'
-                    clusterStatus = '执行有异常'
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=cntId
-                    RESULT_DICT['stage']='UNEXECUTED'
-                    RESULT_DICT['stagestatus']='sql执行异常'
-                    RESULT_DICT['sql']=sql
-                    RESULT_DICT['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
-                    RESULT_DICT['errormessage']=str(e)
-                    resultList.append(RESULT_DICT)
-                    #resultList.append([1,'EXECUTED',0,'execution error',str(e),content[5],content[6],'0_0_1','test',round((datetime.datetime.now()-startTime).microseconds/1000),0])
-                    conn.rollback()
-                    cursor.close()
-                    conn.close()
-                    break
-                else:
-                    rowsReal = cursor.rowcount
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=cntId
-                    RESULT_DICT['stage']='EXECUTED'
-                    RESULT_DICT['stagestatus']='sql执行完毕'
-                    RESULT_DICT['sql']=sql
-                    RESULT_DICT['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
-                    RESULT_DICT['real_rows']=rowsReal
-                    RESULT_DICT['est_rows']=reviewContent[cntId-1]['est_rows']
-                    resultList.append(RESULT_DICT)
-                    cntId+=1
-                    #resultList.append([1,'EXECUTED',0,'execution complete','ok',content[5],content[6],'0_0_1','test',round((datetime.datetime.now()-startTime).microseconds/1000),rowsReal])
-            if clusterStatus == '已正常结束':
-                conn.commit()
+            sql = reviewRow['sql']
+            try:
+                startTime=datetime.datetime.now()
+                cursor.execute(sql)
+            except cx_Oracle.Error as e:
+                finalStatus = '执行有异常'
+                clusterStatus = '执行有异常'
+                reviewRow['stage']='UNEXECUTED'
+                reviewRow['stagestatus']='sql执行异常'
+                reviewRow['errormessage']=str(e)
+                reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
+                resultList.append(reviewRow)
+                conn.rollback()
                 cursor.close()
                 conn.close()
+                break
+            else:
+                rowsReal = cursor.rowcount
+                reviewRow['stage']='EXECUTED'
+                reviewRow['stagestatus']='sql执行完毕'
+                reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
+                reviewRow['real_rows']=rowsReal
+                resultList.append(reviewRow)
+        if clusterStatus == '已正常结束':
+            conn.commit()
+            cursor.close()
+            conn.close()
         return finalStatus,resultList
 
     #执行查询语句
