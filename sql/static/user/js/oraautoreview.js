@@ -102,7 +102,7 @@ function renderClusterResult() {
 
 function execute(e,t){
 	var _this = $(t);
-    var result = confirm('current status is '+ $('#workflowDetail_status').html() +',are you sure to execute?');  
+    var result = confirm('当前状态是'+ $('#workflowDetail_status').html() +',确认继续吗?');  
     if(result){
         _this.parent('form').submit();
     }

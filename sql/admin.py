@@ -31,13 +31,12 @@ class usersCreationForm(UserCreationForm):
 class usersChangeForm(UserChangeForm): 
     def __init__(self, *args, **kwargs):
         super(usersChangeForm, self).__init__(*args, **kwargs)
-        self.fields['display'].required = True        
-        self.fields['role'].required = True        
+        self.fields['role'].required = True
 
 class usersAdmin(UserAdmin):
     def __init__(self, *args, **kwargs):
         super(usersAdmin, self).__init__(*args, **kwargs)
-        self.list_display = ('id', 'username', 'display', 'role', 'email', 'password', 'is_superuser', 'is_active')
+        self.list_display = ('id', 'username', 'display', 'role', 'email','wechat_account', 'password', 'is_superuser', 'is_active')
         self.search_fields = ('id', 'username', 'display', 'role', 'email')
         self.form = usersChangeForm
         self.add_form = usersCreationForm
@@ -49,13 +48,13 @@ class usersAdmin(UserAdmin):
             #此字段定义UserChangeForm表单中的具体显示内容，并可以分类显示
             self.fieldsets = (
                               (('认证信息'), {'fields': ('username', 'password')}),
-                              (('个人信息'), {'fields': ('display', 'role', 'email')}),
+                              (('个人信息'), {'fields': ('display', 'role', 'email','wechat_account')}),
                               (('权限信息'), {'fields': ('is_active', 'is_staff')}),
                               #(('Important dates'), {'fields': ('last_login', 'date_joined')}),
                               )
             #此字段定义UserCreationForm表单中的具体显示内容
             self.add_fieldsets = ((None, {'classes': ('wide',),
-                                          'fields': ('username', 'display', 'role', 'email', 'password1', 'password2'),
+                                          'fields': ('username', 'display', 'role', 'email','wechat_account', 'password1', 'password2'),
                                           }),
                                   )
         return super(usersAdmin, self).changelist_view(request, extra_context)

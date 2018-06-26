@@ -22,7 +22,7 @@ from .sendmail import MailSender
 from .aes_decryptor import Prpcrypt
 from .models import *
 from .getnow import getNow
-from .tasks import oraAutoReview,mailDba
+from .tasks import oraAutoReview,mailDba,wechatDba
 
 daoora = DaoOra()
 prpCryptor = Prpcrypt()
@@ -257,7 +257,8 @@ def workflowSubmit(request):
             continue
         strContent = "发起人：" + engineer + "\n审核人：" + str(listAllReviewMen)  + "\n工单地址：" + url + "\n工单名称： " + workflowName+"\n原因:"+ reason+"\n备注说明: "+ message + "\n具体SQL：" + sqlContent
         objReviewMan = users.objects.get(username=reviewMan)
-        mailDba.delay(url,strTitle, strContent, [objReviewMan.email])
+        mailDba.delay(strTitle, strContent, [objReviewMan.email])
+        wechatDba.delay(strTitle,strContent,objReviewMan.wechat_account)
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 
 
@@ -355,22 +356,18 @@ def execute(request):
     workflowDetail.save()
 
     #如果执行完毕了，则根据settings.py里的配置决定是否给提交者和DBA一封邮件提醒.DBA需要知晓审核并执行过的单子
-    if hasattr(settings, 'MAIL_ON_OFF') == True:
-        if getattr(settings, 'MAIL_ON_OFF') == "on":
-            url = _getDetailUrl(request) + str(workflowId) + '/'
+    url = _getDetailUrl(request) + str(workflowId) + '/'
 
-            #给主、副审核人，申请人，DBA各发一封邮件
-            engineer = workflowDetail.engineer
-            reviewMen = workflowDetail.review_man
-            workflowStatus = workflowDetail.status
-            workflowName = workflowDetail.workflow_name
-            objEngineer = users.objects.get(username=engineer)
-            strTitle = "SQL上线工单执行完毕 # " + str(workflowId)
-            strContent = "发起人：" + engineer + "\n审核人：" + reviewMen + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus
-            mailDba.delay(strTitle, strContent, [objEngineer.email])
-        else:
-            #不发邮件
-            pass
+    #给主、副审核人，申请人，DBA各发一封邮件
+    engineer = workflowDetail.engineer
+    reviewMen = workflowDetail.review_man
+    workflowStatus = workflowDetail.status
+    workflowName = workflowDetail.workflow_name
+    objEngineer = users.objects.get(username=engineer)
+    strTitle = "SQL上线工单执行完毕 # " + str(workflowId)
+    strContent = "发起人：" + engineer + "\n审核人：" + reviewMen + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus
+    mailDba.delay(strTitle, strContent, [objEngineer.email])
+    wechatDba.delay(strTitle, strContent,objEngineer.wechat_account)
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 
 
@@ -403,29 +400,26 @@ def cancel(request):
     workflowDetail.save()
 	
     #如果人工终止了，则根据settings.py里的配置决定是否给提交者和审核人发邮件提醒。如果是发起人终止流程，则给主、副审核人各发一封；如果是审核人终止流程，则给发起人发一封邮件，并附带说明此单子被拒绝掉了，需要重新修改.
-    if hasattr(settings, 'MAIL_ON_OFF') == True:
-        if getattr(settings, 'MAIL_ON_OFF') == "on":
-            url = _getDetailUrl(request) + str(workflowId) + '/'
+    url = _getDetailUrl(request) + str(workflowId) + '/'
 
-            engineer = workflowDetail.engineer
-            workflowStatus = workflowDetail.status
-            workflowName = workflowDetail.workflow_name
-            if loginUser == engineer:
-                strTitle = "发起人主动终止SQL上线工单流程 # " + str(workflowId)
-                strContent = "发起人：" + engineer + "\n审核人：" + reviewMan + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus +"\n提醒：发起人主动终止流程"
-                for reviewMan in listAllReviewMen:
-                    if reviewMan == "":
-                        continue
-                    objReviewMan = users.objects.get(username=reviewMan)
-                    mailDba.delay(strTitle, strContent, [objReviewMan.email])
-            else:
-                objEngineer = users.objects.get(username=engineer)
-                strTitle = "SQL上线工单被拒绝执行 # " + str(workflowId)
-                strContent = "发起人：" + engineer + "\n审核人：" + reviewMan + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus +"\n提醒：此工单被拒绝执行，请登陆重新提交或修改工单"
-                mailDba.delay(strTitle, strContent, [objEngineer.email])
-        else:
-            #不发邮件
-            pass
+    engineer = workflowDetail.engineer
+    workflowStatus = workflowDetail.status
+    workflowName = workflowDetail.workflow_name
+    if loginUser == engineer:
+        strTitle = "发起人主动终止SQL上线工单流程 # " + str(workflowId)
+        strContent = "发起人：" + engineer + "\n审核人：" + reviewMan + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus +"\n提醒：发起人主动终止流程"
+        for reviewMan in listAllReviewMen:
+            if reviewMan == "":
+                continue
+            objReviewMan = users.objects.get(username=reviewMan)
+            mailDba.delay(strTitle, strContent, [objReviewMan.email])
+            wechatDba.delay(strTitle, strContent, objReviewMan.wechat_account)
+    else:
+        objEngineer = users.objects.get(username=engineer)
+        strTitle = "SQL上线工单被拒绝执行 # " + str(workflowId)
+        strContent = "发起人：" + engineer + "\n审核人：" + reviewMan + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus +"\n提醒：此工单被拒绝执行，请登陆重新提交或修改工单"
+        mailDba.delay(strTitle, strContent, [objEngineer.email])
+        wechatDba.delay(strTitle, strContent, objEngineer.wechat_account)
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/')
 

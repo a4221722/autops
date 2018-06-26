@@ -9,9 +9,11 @@ from celery import task
 from django.db.utils import IntegrityError
 from django.conf import settings
 from .sendmail import MailSender
+from .wechat import WechatAlert
 
 daoora=DaoOra()
 mailSender = MailSender()
+wechatalert = WechatAlert()
 
 from celery.signals import worker_process_init
 from multiprocessing import current_process
@@ -128,7 +130,7 @@ def _getDetailUrl(request):
     return "%s://%s/detail/" % (scheme, host)
 
 @task()
-def mailDba(url,strTitle, strContent, emailList):
+def mailDba(strTitle, strContent, emailList):
 #如果进入等待人工审核状态了，则根据settings.py里的配置决定是否给审核人发一封邮件提醒.
     if hasattr(settings, 'MAIL_ON_OFF') == True:
         if getattr(settings, 'MAIL_ON_OFF') == "on":
@@ -136,4 +138,10 @@ def mailDba(url,strTitle, strContent, emailList):
         else:
             #不发邮件
             pass
+
+@task()
+def wechatDba(strTitle, strContent,user):
+#如果开启微信通知，则发送微信
+    if hasattr(settings, 'WECHAT_ON_OFF') == True and getattr(settings, 'WECHAT_ON_OFF') == "on":
+        wechatalert.sendMessage(user, strTitle, strContent)
 
