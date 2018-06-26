@@ -16,6 +16,7 @@ yum install python-devel openldap-devel
 * Crypto
 * pycrypto
 * paramiko
+* sqlparse
 
 #安装model：
 ````
