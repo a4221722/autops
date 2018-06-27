@@ -17,6 +17,7 @@ yum install python-devel openldap-devel
 * pycrypto
 * paramiko
 * sqlparse
+* django_comments
 
 #安装model：
 ````

@@ -24,7 +24,6 @@ class workflowAdmin(admin.ModelAdmin):
 class usersCreationForm(UserCreationForm):
     def __init__(self, *args, **kwargs):
         super(usersCreationForm, self).__init__(*args, **kwargs)
-        self.fields['display'].required = True
         self.fields['role'].required = True
 
 #编辑用户表单重新定义，继承自UserChangeForm
@@ -32,6 +31,8 @@ class usersChangeForm(UserChangeForm):
     def __init__(self, *args, **kwargs):
         super(usersChangeForm, self).__init__(*args, **kwargs)
         self.fields['role'].required = True
+        self.fields['wechat_account'].required = False
+        self.fields['display'].required = False
 
 class usersAdmin(UserAdmin):
     def __init__(self, *args, **kwargs):

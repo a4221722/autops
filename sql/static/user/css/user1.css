@@ -1,5 +1,7 @@
 textarea{
 	white-space: pre-line;
+	border-radius: 3px;
+    border: 1px solid #ddd;
 }
 td,th{
 	text-align: center;
@@ -138,4 +140,12 @@ td,th{
 }
 .break-normal{
 	word-break: normal;
+}
+#id_honeypot {
+		    display: none;
+	}
+.comment_link{
+	text-align:center;
+	color:#337ab7;
+	cursor:pointer;
 }

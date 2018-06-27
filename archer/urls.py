@@ -19,4 +19,5 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^', include('sql.urls')),
     url(r'^', include('dbmonitor.urls')),
+    url(r'^comments/', include('django_comments.urls')),
 ]

@@ -12,4 +12,5 @@ class Const(object):
                         'manexec': '等待手工执行',
                         'manfinish': '手工执行成功',
                         'manexcept': '手工执行异常',
+                        'devcommit': '工程师已确认',
                      }

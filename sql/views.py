@@ -289,6 +289,7 @@ def detail(request, workflowId):
     limit = offset + PAGE_LIMIT
 
     loginUser = request.session.get('login_username', False)
+    loginUserObj = users.objects.get(username = loginUser)
     workflowDetail = get_object_or_404(workflow, pk=workflowId)
     if workflowDetail.status in (Const.workflowStatus['finish'], Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']):
         try:
@@ -304,19 +305,13 @@ def detail(request, workflowId):
     pages = math.ceil(len(listResult)/PAGE_LIMIT)
     pageRange = range(pageNo,pageNo+min(4,pages-pageNo)+1)
     listContent = listResult[offset:limit]
-    #for content in listContent:
-    #    content['sql'] = content['sql'].replace('\n','<br>')
     try:
         listAllReviewMen = json.loads(workflowDetail.review_man)
     except ValueError:
         listAllReviewMen = (workflowDetail.review_man, )
     strMessage = workflowDetail.message
 
-    # 格式化detail界面sql语句和审核/执行结果 by 搬砖工
-    #for Content in listContent:
-    #    Content[4] = Content[4].split('\n')     # 审核/执行结果
-    #    Content[5] = Content[5].split('\r\n')   # sql语句
-    context = {'currentMenu':'allworkflow', 'workflowDetail':workflowDetail, 'listContent':listContent,'pages':pages,'pageNo':pageNo,'PAGE_LIMIT':PAGE_LIMIT,'listAllReviewMen':listAllReviewMen,'pageRange':pageRange,'strMessage':strMessage}
+    context = {'currentMenu':'allworkflow', 'workflowDetail':workflowDetail, 'listContent':listContent,'pages':pages,'pageNo':pageNo,'PAGE_LIMIT':PAGE_LIMIT,'listAllReviewMen':listAllReviewMen,'pageRange':pageRange,'strMessage':strMessage,'loginUserObj':loginUserObj}
     return render(request, 'detail.html', context)
 #人工审核也通过，执行SQL
 def execute(request):

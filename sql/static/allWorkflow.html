@@ -52,6 +52,14 @@
 					 <a href="/allworkflow/?pageNo=0&navStatus=autoreviewwrong">自动审核不通过的</a>
 				</li>
 
+				{% if navStatus == 'devcommit' %}
+				<li class="active">
+                {% else %}
+                <li>
+                {% endif %}
+					 <a href="/allworkflow/?pageNo=0&navStatus=devcommit">工程师已确认</a>
+				</li>
+
 			</ul>
 			<table class="table table-striped table-hover">
 				<thead>

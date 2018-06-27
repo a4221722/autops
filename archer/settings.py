@@ -44,11 +44,16 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_comments',
+    'django.contrib.sites',
     'djcelery',
     'kombu.transport.django',
     'sql',
     'dbmonitor',
+    'my_comment',
 )
+COMMENTS_APP = 'my_comment'
+SITE_ID = 1
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
