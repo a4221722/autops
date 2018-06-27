@@ -443,7 +443,6 @@
 						</div>
 					</div>
 				</div>
-{% if loginUser == workflowDetail.engineer or loginUser in listAllReviewMen%}
 <div class="panel panel-default" style="margin-top:20px">
     <div class="panel-heading">
         <h4>评论列表</h4>
@@ -467,6 +466,7 @@
         <p class="comment_link" data-toggle="modal" data-target="#view_all_comment">点击查看完整评论</p>
     </div>
 </div>
+{% if loginUser == workflowDetail.engineer or loginUser in listAllReviewMen%}
 {% get_comment_form for workflowDetail as form %}
 <form action='{%comment_form_target%}' method='post'>
     {% csrf_token %}

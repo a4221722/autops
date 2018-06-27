@@ -14,7 +14,7 @@ class MyComment(CommentAbstractModel):
             workflowObj = workflow.objects.get(id=self.object_pk)
             strTitle = '工单新评论提醒 # '+self.object_pk
             reviewMen = json.loads(workflowObj.review_man)
-            commentUser = users.objects.get(id = self.user_id)
+            commentUser = users.objects.get(username = self.user_name)
             strContent = '评论人：'+commentUser.username+'\n工单名称: '+workflowObj.workflow_name+'\n评论内容: '+self.comment
             for reviewMan in reviewMen:
                 if commentUser.username != reviewMan:
