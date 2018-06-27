@@ -336,9 +336,6 @@ class DaoOra(object):
                 reviewRow['errormessage']=str(e)
                 reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
                 resultList.append(reviewRow)
-                connDict[clusterName].rollback()
-                corDict[clusterName].close()
-                connDict[clusterName].close()
                 break
             else:
                 rowsReal = corDict[clusterName].rowcount
@@ -347,16 +344,18 @@ class DaoOra(object):
                 reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
                 reviewRow['real_rows']=rowsReal
                 resultList.append(reviewRow)
-        if finalStatus == '已正常结束':
-            connDict[cn].commit()
-            corDict[cn].close()
-            connDict[cn].close()
 
-        #for cn in connDict.keys():
-        #    if stDict[cn] == '已正常结束':
-        #        connDict[cn].commit()
-        #        corDict[cn].close()
-        #        connDict[cn].close()
+        for cn in connDict.keys():
+            if finalStatus == '已正常结束':
+            #if stDict[cn] == '已正常结束':
+                connDict[cn].commit()
+                corDict[cn].close()
+                connDict[cn].close()
+            else:
+                connDict[cn].rollback()
+                corDict[cn].close()
+                connDict[cn].close()
+
         return finalStatus,resultList
 
     #执行查询语句
