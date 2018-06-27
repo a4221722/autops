@@ -314,12 +314,9 @@ class DaoOra(object):
 
         for reviewRow in reviewContent:
             clusterName = reviewRow['clustername']
-            #clusterStatus = '已正常结束'
             sql = reviewRow['sql']
             if not connDict.get(clusterName):
                 finalStatus = '执行有异常'
-                #stDict[clusterName] = '执行有异常'
-                #clusterStatus = '执行有异常'
                 reviewRow['stage']='UNEXECUTED'
                 reviewRow['stagestatus']='连接服务器异常'
                 reviewRow['errormessage']=str(e)
@@ -342,6 +339,7 @@ class DaoOra(object):
                 connDict[clusterName].rollback()
                 corDict[clusterName].close()
                 connDict[clusterName].close()
+                break
             else:
                 rowsReal = corDict[clusterName].rowcount
                 reviewRow['stage']='EXECUTED'
@@ -349,15 +347,16 @@ class DaoOra(object):
                 reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
                 reviewRow['real_rows']=rowsReal
                 resultList.append(reviewRow)
-        for cn in connDict.keys():
-            if stDict[cn] == '已正常结束':
-                connDict[cn].commit()
-                corDict[cn].close()
-                connDict[cn].close()
-        #if clusterStatus == '已正常结束':
-        #    connDict[clusterName].commit()
-        #    corDict[clusterName].close()
-        #    connDict[clusterName].close()
+        if finalStatus == '已正常结束':
+            connDict[cn].commit()
+            corDict[cn].close()
+            connDict[cn].close()
+
+        #for cn in connDict.keys():
+        #    if stDict[cn] == '已正常结束':
+        #        connDict[cn].commit()
+        #        corDict[cn].close()
+        #        connDict[cn].close()
         return finalStatus,resultList
 
     #执行查询语句
