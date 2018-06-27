@@ -290,10 +290,10 @@ class DaoOra(object):
         reviewContent = json.loads(workflowDetail.review_content)
         resultList=[]
         finalStatus = '已正常结束'
-        for reviewRow in reviewContent:
-        #for clusterName in clusterNameList:
-            clusterName = reviewRow['clustername']
-            clusterStatus = '已正常结束'
+        connDict = {}
+        corDict = {}
+        stDict = {}
+        for clusterName in clusterNameList:
             listPrimaries = ora_primary_config.objects.filter(cluster_name=clusterName)
             primaryHost=listPrimaries[0].primary_host
             primaryPort=listPrimaries[0].primary_port
@@ -305,42 +305,59 @@ class DaoOra(object):
             try:
                 conn=cx_Oracle.connect(primaryUser,primaryPassword,oraLink,encoding=primaryCharset)
             except Exception as e:
+                continue
+            else:
+                cursor = conn.cursor()
+                connDict[clusterName] = conn
+                corDict[clusterName] = cursor
+                stDict[clusterName] = '已正常结束'
+
+        for reviewRow in reviewContent:
+            clusterName = reviewRow['clustername']
+            #clusterStatus = '已正常结束'
+            sql = reviewRow['sql']
+            if not connDict.get(clusterName):
                 finalStatus = '执行有异常'
-                clusterStatus = '执行有异常'
+                #stDict[clusterName] = '执行有异常'
+                #clusterStatus = '执行有异常'
                 reviewRow['stage']='UNEXECUTED'
                 reviewRow['stagestatus']='连接服务器异常'
                 reviewRow['errormessage']=str(e)
                 resultList.append(reviewRow)
                 continue
-            else:
-                cursor = conn.cursor()
-            sql = reviewRow['sql']
+            elif stDict[clusterName] == '执行有异常':
+                continue
             try:
                 startTime=datetime.datetime.now()
-                cursor.execute(sql)
+                corDict[clusterName].execute(sql)
             except cx_Oracle.Error as e:
                 finalStatus = '执行有异常'
-                clusterStatus = '执行有异常'
+                stDict[clusterName] = '执行有异常'
+                #clusterStatus = '执行有异常'
                 reviewRow['stage']='UNEXECUTED'
                 reviewRow['stagestatus']='sql执行异常'
                 reviewRow['errormessage']=str(e)
                 reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
                 resultList.append(reviewRow)
-                conn.rollback()
-                cursor.close()
-                conn.close()
-                break
+                connDict[clusterName].rollback()
+                corDict[clusterName].close()
+                connDict[clusterName].close()
             else:
-                rowsReal = cursor.rowcount
+                rowsReal = corDict[clusterName].rowcount
                 reviewRow['stage']='EXECUTED'
                 reviewRow['stagestatus']='sql执行完毕'
                 reviewRow['execute_time']=round((datetime.datetime.now()-startTime).microseconds/1000)
                 reviewRow['real_rows']=rowsReal
                 resultList.append(reviewRow)
-        if clusterStatus == '已正常结束':
-            conn.commit()
-            cursor.close()
-            conn.close()
+        for cn in connDict.keys():
+            if stDict[cn] == '已正常结束':
+                connDict[cn].commit()
+                corDict[cn].close()
+                connDict[cn].close()
+        #if clusterStatus == '已正常结束':
+        #    connDict[clusterName].commit()
+        #    corDict[clusterName].close()
+        #    connDict[clusterName].close()
         return finalStatus,resultList
 
     #执行查询语句
