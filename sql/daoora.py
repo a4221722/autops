@@ -26,6 +26,12 @@ _CHART_DAYS = 90
 
 __all__ = ('getAllSchemaByCluster','getAllTableByCluster','getWorkChartsByMonth','getWorkChartsByPerson','sqlAutoreview','executeFinal','query')
 
+def _mapEnDisplay(userName):
+    try:
+        display=users.objects.get(username=userName).display
+    except Exception:
+        display=''
+    return display
 class DaoOra(object):
 
     def getDbInfo(self,clusterName):
@@ -138,7 +144,8 @@ class DaoOra(object):
         cursor = connection.cursor()
         sql = "select engineer, count(*) as cnt from sql_workflow where create_time>=SUBDATE(now(), INTERVAL {} DAY) group by engineer order by cnt desc limit 50".format(_CHART_DAYS)
         cursor.execute(sql)
-        result = cursor.fetchall()
+        resultF = cursor.fetchall()
+        result = [[_mapEnDisplay(row[0]),row[1]] for row in resultF]
         return result
 
     def sqlAutoreview(self,sqlContent,clusterNameStr):
