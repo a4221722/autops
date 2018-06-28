@@ -377,8 +377,8 @@ def manFinish(request):
     executeStatus = request.POST['status']
     executeResult = request.POST['content']
     workflowDetail = workflow.objects.get(id=workflowId)
-    if loginUser != workflowDetail.operator:
-        result = {"status":status,"msg":"需要处理人操作"}
+    if loginUser != workflowDetail.operator and workflowDetail.data_change_type not in ('数据迁移','其他'):
+        result = {"status":-1,"msg":"需要处理人操作"}
         return HttpResponse(json.dumps(result), content_type='application/json')
 
     workflowDetail.execute_result = executeResult
@@ -388,6 +388,7 @@ def manFinish(request):
         workflowDetail.status = Const.workflowStatus['manfinish']
 
     try:
+        workflowDetail.operator = loginUser
         workflowDetail.finish_time = getNow()
         workflowDetail.save()
     except Exception as e:
@@ -520,3 +521,4 @@ def getResult(request):
         page_range = paginator.page_range[0:int(page)+before_range_num]
     result = {'final_status':finalStatus,'msg':msg,'header_list':headerList,'query_result':queryResultP}
     return HttpResponse(locals(), content_type='application/json')
+

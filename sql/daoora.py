@@ -4,6 +4,7 @@ import cx_Oracle
 
 from django.db import connection
 from .models import ora_primary_config,ora_tab_privs,users,ora_tables
+from .const import Const
 from .aes_decryptor import Prpcrypt
 import datetime
 import re
@@ -289,7 +290,7 @@ class DaoOra(object):
         clusterNameList = workflowDetail.cluster_name.split(',')
         reviewContent = json.loads(workflowDetail.review_content)
         resultList=[]
-        finalStatus = '已正常结束'
+        finalStatus = Const.workflowStatus['finish']
         connDict = {}
         corDict = {}
         stDict = {}
@@ -316,7 +317,7 @@ class DaoOra(object):
             clusterName = reviewRow['clustername']
             sql = reviewRow['sql']
             if not connDict.get(clusterName):
-                finalStatus = '执行有异常'
+                finalStatus = Const.workflowStatus['exception']
                 reviewRow['stage']='UNEXECUTED'
                 reviewRow['stagestatus']='连接服务器异常'
                 reviewRow['errormessage']=str(e)
@@ -328,9 +329,8 @@ class DaoOra(object):
                 startTime=datetime.datetime.now()
                 corDict[clusterName].execute(sql)
             except cx_Oracle.Error as e:
-                finalStatus = '执行有异常'
+                finalStatus = Const.workflowStatus['exception']
                 stDict[clusterName] = '执行有异常'
-                #clusterStatus = '执行有异常'
                 reviewRow['stage']='UNEXECUTED'
                 reviewRow['stagestatus']='sql执行异常'
                 reviewRow['errormessage']=str(e)
@@ -346,8 +346,7 @@ class DaoOra(object):
                 resultList.append(reviewRow)
 
         for cn in connDict.keys():
-            if finalStatus == '已正常结束':
-            #if stDict[cn] == '已正常结束':
+            if finalStatus == Const.workflowStatus['finish']:
                 connDict[cn].commit()
                 corDict[cn].close()
                 connDict[cn].close()

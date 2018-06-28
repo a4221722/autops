@@ -41,4 +41,5 @@ urlpatterns = [
     url(r'^privmod/(?P<operation>\w+)/$', views_ajax.privMod, name='privmod'),
     url(r'^privcommit/(?P<operation>\w+)/$', views_ajax.privCommit, name='privcommit'),
     url(r'^getresult/$', views_ajax.getResult, name='getresult'),
+    url(r'^engineeraffirm/$', views.engineerAffirm, name='engineeraffirm'),
 ]

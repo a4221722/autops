@@ -82,7 +82,7 @@
 								当前状态
 						</th>
 						<td>
-							{% if workflowDetail.status == "已正常结束" %}
+							{% if workflowDetail.status == workflowStatus.finish or workflowDetail.status == workflowStatus.manfinish %}
 								<font color="green">
 							{% else %}
 								<font color="red">
@@ -90,6 +90,22 @@
 								<B id="workflowDetail_status">{{workflowDetail.status}}</B></font>
 						</td>
 					</tr>
+					{% if workflowDetail.status == workflowStatus.finish or workflowDetail.status == workflowStatus.manfinish %}
+					<tr class="success">
+						<th>
+							工程师是否确认	
+						</th>
+						<td>
+							{{workflowDetail.affirm}}
+						</td>
+						<th>
+								确认时间		
+						</th>
+						<td>
+							{{workflowDetail.affirm_time|date:"Y-m-d H:i:s"}}
+						</td>
+					</tr>
+					{% endif %}
 					
 				</tbody>
 			</table>
@@ -260,11 +276,11 @@
 			<input type="hidden" id="workflowid" value="{{workflowDetail.id}}">
 				<input type="button" id="btnPerformed" data-toggle="modal" class="btn btn-default" data-target="#sql_list_view_modal" value="查看sql文本" />
 				<input type="button" id="btnPerformed" data-toggle="modal" class="btn btn-default" data-target="#message_view_modal" value="查看备注" />
-				{% if workflowDetail.status == '手工执行成功' or workflowDetail.status == '手工执行异常'%}
+				{% if workflowDetail.status == workflowStatus.manfinish or workflowDetail.status == workflowStatus.manexcept %}
 					<input type="button" data-toggle="modal" class="btn btn-default" data-target="#show_manual_log" value="手工操作日志" />
 				{% endif %}
 			{% if loginUser in listAllReviewMen %}
-				{% if workflowDetail.status == '等待审核人审核' or workflowDetail.status == '自动审核不通过' %}
+				{% if workflowDetail.status == workflowStatus.manreviewing or workflowDetail.status == workflowStatus.autoreviewwrong %}
 					<form action="/execute/"  method="post" style="display:inline-block;">
 						{% csrf_token %}
 						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
@@ -279,42 +295,29 @@
 					</form>
 				{% endif %}
 
-				{% if workflowDetail.status == '已正常结束' and workflowDetail.is_backup == '是' %}
+				{% if workflowDetail.status == workflowStatus.finish and workflowDetail.is_backup == '是' %}
 				<form action="/rollback/" method="get" style="display:inline-block;">
 					{% csrf_token %}
 					<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
 					<input type="submit" id="btnRollback" class="btn btn-primary btn-default" data-loading-text="Loading..." value="查看回滚SQL" />
 				</form>
 				{% endif %}
-
-				{% if workflowDetail.status == '等待手工执行' and loginUser == workflowDetail.operator%}
+				{% if workflowDetail.status == workflowStatus.manexec %}
+					{% if workflowDetail.data_change_type == '数据迁移' or workflowDetail.data_change_type == '其他' or loginUser == workflowDetail.operator %}
 					<input type="button" id="btnWait" data-toggle="modal" class="btn btn-default" data-target="#manual_confirm_dialog" value="手工确认" />
 					<form action="/cancel/" method="post" style="display:inline-block;">
 						{% csrf_token %}
 						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
 						<input type="button" id="btnCancel" onclick="execute(event,this)" class="btn btn-default" data-loading-text="Loading..." value="终止流程" />
 					</form>
+					{% endif %}
 				{% endif %}
 
 				
-				<!--
-				{% if workflowDetail.status == '执行有异常' %}
-					<form action="/cancel/" method="post" style="display:inline-block;">
-						{% csrf_token %}
-						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
-						<input type="button" id="btnCancel" onclick="execute(event,this)" class="btn btn-default" data-loading-text="Loading..." value="终止流程" />
-					</form>
-				{% endif %}
-				{% if workflowDetail.status == '人工终止流程' %}
-					{% csrf_token %}
-					<a type='button' id="btnEditSql" class='btn btn-warning' href="/editsql/?workflowid={{workflowDetail.id}}">重新修改</a>
-				{% endif %}
-				-->
-
 			{% endif %}
 
 			{% if loginUser == workflowDetail.engineer %}
-				{% if workflowDetail.status == '自动审核不通过' %}
+				{% if workflowDetail.status == workflowStatus.autoreviewwrong %}
 					<!--只允许发起人修改工单-->
 					{% csrf_token %}
 					<a type='button' id="btnEditSql" class='btn btn-warning' href="/editsql/?workflowid={{workflowDetail.id}}">重新修改</a>
@@ -323,6 +326,17 @@
 						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
 						<input type="button" id="btnCancel" onclick="execute(event,this)" class="btn btn-default" data-loading-text="Loading..." value="终止流程" />
 					</form>
+				{% endif %}
+				<!--工程师做最后确认 -->
+				{% if workflowDetail.status == workflowStatus.finish or workflowDetail.status == workflowStatus.manfinish %}
+					{% if workflowDetail.affirm == '未确认'  %}
+					{% csrf_token %}
+					<form action="/engineeraffirm/" method="post" style="display:inline-block;">
+						{% csrf_token %}
+						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
+						<input type="button" id="btnCancel" onclick="execute(event,this)" class="btn btn-default" data-loading-text="Loading..." value="审核通过" />
+					</form>
+					{% endif %}
 				{% endif %}
 			{% endif %}
 		</div>

@@ -63,7 +63,7 @@ class workflow(models.Model):
     review_man = models.CharField('审核人', max_length=50)
     create_time = models.DateTimeField('创建时间', auto_now_add=True)
     finish_time = models.DateTimeField('结束时间', null=True, blank=True)
-    status = models.CharField(max_length=50, choices=tuple([(v,v) for k,v in Const.workflowStatus.items()]))#(('已正常结束','已正常结束'),('人工终止流程','人工终止流程'),('自动审核中','自动审核中'),('等待审核人审核','等待审核人审核'),('执行中','执行中'),('自动审核不通过','自动审核不通过'),('执行有异常','执行有异常')))
+    status = models.CharField(max_length=50, choices=tuple([(v,v) for k,v in Const.workflowStatus.items()]))
     #is_backup = models.IntegerField('是否备份，0为否，1为是', choices=((0,0),(1,1)))
     is_backup = models.CharField('是否备份', choices=(('否','否'),('是','是')), max_length=20)
     review_content = models.TextField('自动审核内容的JSON格式')
@@ -75,6 +75,8 @@ class workflow(models.Model):
     data_change_type = models.CharField('数据变更类型',choices=(('数据修订','数据修订'),('数据初始化','数据初始化'),('数据迁移','数据迁移')),max_length=50)
     reason = models.CharField('原因',max_length=200)
     operator = models.CharField('处理人', max_length=50,null=True)
+    affirm = models.CharField('工程师是否确认',max_length=10,default='未确认',choices=(('未确认','未确认'),('已确认','已确认')))
+    affirm_time = models.DateTimeField('结束时间', null=True, blank=True)
 
     def __str__(self):
         return self.workflow_name
