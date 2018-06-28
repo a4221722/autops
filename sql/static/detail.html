@@ -31,10 +31,11 @@
 							{{workflowDetail.data_change_type}}
 						</td>
 						<th>
-							发起时间
+							上线实例	
 						</th>
 						<td>
-							{{workflowDetail.create_time|date:"Y-m-d H:i:s"}}
+							{{workflowDetail.cluster_name}}
+							
 						</td>
 					</tr>
 					<tr class="success">
@@ -45,6 +46,22 @@
 							{{workflowDetail.engineer}}
 						</td>
 						<th>
+							发起时间
+						</th>
+						<td>
+							{{workflowDetail.create_time|date:"Y-m-d H:i:s"}}
+						</td>
+					</tr>
+					<tr class="success">
+						<th>
+							审核人	
+						</th>
+						<td>
+							{% for reviewMan in listAllReviewMen %}
+								{{ reviewMan}}
+							{% endfor %}
+						</td>
+						<th>
 							结束时间
 						</th>
 						<td>
@@ -53,10 +70,13 @@
 					</tr>
 					<tr class="success">
 						<th>
-							审核人	
+							操作人
 						</th>
 						<td>
-							{{listAllReviewMen.0}} {{listAllReviewMen.1}}
+							{% if workflowDetail.operator == None %}
+							{% else %}
+								{{workflowDetail.operator}}
+							{% endif %}
 						</td>
 						<th>
 								当前状态
@@ -68,21 +88,6 @@
 								<font color="red">
 							{% endif %}
 								<B id="workflowDetail_status">{{workflowDetail.status}}</B></font>
-						</td>
-					</tr>
-					<tr class="success">
-						<th>
-							上线实例	
-						</th>
-						<td>
-							{{workflowDetail.cluster_name}}
-							
-						</td>
-						<th>
-							原因
-						</th>
-						<td>
-							{{workflowDetail.reason}}
 						</td>
 					</tr>
 					
@@ -235,6 +240,10 @@
 	<input type="hidden" id="editSubReviewman" value="{{listAllReviewMen.1}}"/>
 	<div>
 			<div>
+				<p>原因:</p>
+				<textarea readonly=True style="width:360px;resize: none;margin-bottom: 10px;">{% if workflowDetail.reason != '' %}{{workflowDetail.reason}} {% else %} 无 {% endif %}</textarea>
+			<div>
+			<div>
 				<p>备注:</p>
 				<textarea readonly=True style="width:360px;resize: none;margin-bottom: 10px;">{% if workflowDetail.message != '' %}{{workflowDetail.message}} {% else %} 无 {% endif %}</textarea>
 			<div>
@@ -278,7 +287,7 @@
 				</form>
 				{% endif %}
 
-				{% if workflowDetail.status == '等待手工执行' %}
+				{% if workflowDetail.status == '等待手工执行' and loginUser == workflowDetail.operator%}
 					<input type="button" id="btnWait" data-toggle="modal" class="btn btn-default" data-target="#manual_confirm_dialog" value="手工确认" />
 					<form action="/cancel/" method="post" style="display:inline-block;">
 						{% csrf_token %}

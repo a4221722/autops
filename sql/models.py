@@ -74,6 +74,7 @@ class workflow(models.Model):
     message = models.TextField('备注说明',null=True)
     data_change_type = models.CharField('数据变更类型',choices=(('数据修订','数据修订'),('数据初始化','数据初始化'),('数据迁移','数据迁移')),max_length=50)
     reason = models.CharField('原因',max_length=200)
+    operator = models.CharField('处理人', max_length=50,null=True)
 
     def __str__(self):
         return self.workflow_name

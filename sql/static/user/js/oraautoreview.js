@@ -137,10 +137,10 @@ function confirmManual() {
 		$.post('/manexec/',{workflowid:$('#workflowid').val()},
 		function(data) {
 			if(parseInt(data.status) === 2) {
-				alert('success');
+				alert(data.msg);
 				window.location.reload();
 			}else {
-				alert('fail');
+				alert(data.msg);
 			}
 		})
 	})

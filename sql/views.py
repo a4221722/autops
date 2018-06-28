@@ -8,6 +8,7 @@ from collections import OrderedDict
 import pdb
 
 from django.db.models import Q
+from django.db import transaction
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
@@ -76,7 +77,7 @@ def allworkflow(request):
     elif navStatus == 'all' and role == '工程师':
         allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(engineer=loginUser).order_by('-create_time')
     elif navStatus == 'waitingforme':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec'],Const.workflowStatus['autoreviewwrong']), review_man=loginUser) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
+        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec'],Const.workflowStatus['autoreviewwrong']),review_man__icontains=loginUser ) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
     elif (role == '审核人' or loginUser == 'admin') and navStatus == 'finish':
         allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept'])).order_by('-create_time')
     elif role == '工程师':
@@ -321,7 +322,13 @@ def execute(request):
         return render(request, 'error.html', context)
     
     workflowId = int(workflowId)
-    workflowDetail = workflow.objects.get(id=workflowId)
+    with transaction.atomic():
+        try:
+            workflowDetail = workflow.objects.select_for_update().get(id=workflowId,status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['autoreviewwrong'],))
+        except Exception:
+            context = {'errMsg': '已经在执行'}
+            return render(request, 'error.html', context)
+
     #clusterName = workflowDetail.cluster_name
     try:
         listAllReviewMen = json.loads(workflowDetail.review_man)
@@ -348,6 +355,7 @@ def execute(request):
     workflowDetail.execute_result = strJsonResult
     workflowDetail.finish_time = getNow()
     workflowDetail.status = finalStatus
+    workflowDetail.operator = loginUser
     workflowDetail.save()
 
     #如果执行完毕了，则根据settings.py里的配置决定是否给提交者和DBA一封邮件提醒.DBA需要知晓审核并执行过的单子

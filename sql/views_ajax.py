@@ -8,6 +8,7 @@ import pdb
 
 from django.db.models import Q
 from django.db.utils import IntegrityError
+from django.db import transaction
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404
@@ -347,9 +348,17 @@ def stopOscProgress(request):
 
 @csrf_exempt
 def manExec(request):
+    loginUser = request.session.get('login_username')
     workflowId = request.POST['workflowid']
-    workflowDetail = workflow.objects.get(id=workflowId)
+    with transaction.atomic():
+        try:
+            workflowDetail = workflow.objects.select_for_update().get(id=workflowId,status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['autoreviewwrong'],))
+        except Exception:
+            result = {'msg': '已经在处理'}
+            return HttpResponse(json.dumps(result), content_type='application/json')
+
     workflowDetail.status = Const.workflowStatus['manexec']
+    workflowDetail.operator = loginUser
     try:
         workflowDetail.save()
     except Exception as e:
@@ -363,10 +372,15 @@ def manExec(request):
 
 @csrf_exempt
 def manFinish(request):
+    loginUser = request.session.get('login_username')
     workflowId = request.POST['workflowid']
     executeStatus = request.POST['status']
     executeResult = request.POST['content']
     workflowDetail = workflow.objects.get(id=workflowId)
+    if loginUser != workflowDetail.operator:
+        result = {"status":status,"msg":"需要处理人操作"}
+        return HttpResponse(json.dumps(result), content_type='application/json')
+
     workflowDetail.execute_result = executeResult
     if executeStatus == '0':
         workflowDetail.status = Const.workflowStatus['manexcept']
