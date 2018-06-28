@@ -48,6 +48,21 @@ def logout(request):
         del request.session['login_username']
     return render(request, 'login.html')
 
+def _mapRmDisplay(reviewMan):
+    try:
+        userList = json.loads(reviewMan)
+    except Exception:
+        userList = reviewMan
+    displayList = [users.objects.get(username=un).display for un in userList]
+    return displayList
+
+def _mapEnDisplay(userName):
+    try:
+        display=users.objects.get(username=userName).display
+    except Exception:
+        display=''
+    return display
+
 #首页，也是查看所有SQL工单页面，具备翻页功能
 def allworkflow(request):
     #一个页面展示
@@ -107,6 +122,8 @@ def allworkflow(request):
     offset = pageNo * PAGE_LIMIT
     limit = offset + PAGE_LIMIT
     listWorkflow = allFlow[offset:limit]
+    for flow in listWorkflow:
+        flow['engineer_display']=_mapEnDisplay(flow['engineer'])
 
 
     context = {'currentMenu':'allworkflow', 'listWorkflow':listWorkflow,'pages':pages, 'pageNo':pageNo, 'navStatus':navStatus, 'PAGE_LIMIT':PAGE_LIMIT, 'role':role}
@@ -319,8 +336,11 @@ def detail(request, workflowId):
         listAllReviewMen = (workflowDetail.review_man, )
     strMessage = workflowDetail.message
     workflowStatus = Const.workflowStatus
+    engineer_display = _mapEnDisplay(workflowDetail.engineer)
+    reviewman_display = _mapRmDisplay(workflowDetail.review_man)
+    operator_display = _mapEnDisplay(workflowDetail.operator)
 
-    context = {'currentMenu':'allworkflow', 'workflowDetail':workflowDetail, 'listContent':listContent,'pages':pages,'pageNo':pageNo,'PAGE_LIMIT':PAGE_LIMIT,'listAllReviewMen':listAllReviewMen,'pageRange':pageRange,'strMessage':strMessage,'loginUserObj':loginUserObj,'workflowStatus':workflowStatus}
+    context = {'currentMenu':'allworkflow', 'workflowDetail':workflowDetail, 'listContent':listContent,'pages':pages,'pageNo':pageNo,'PAGE_LIMIT':PAGE_LIMIT,'listAllReviewMen':listAllReviewMen,'pageRange':pageRange,'strMessage':strMessage,'loginUserObj':loginUserObj,'workflowStatus':workflowStatus,'engineer_display':engineer_display,'reviewman_display':reviewman_display,'operator_display':operator_display}
     return render(request, 'detail.html', context)
 #人工审核也通过，执行SQL
 def execute(request):

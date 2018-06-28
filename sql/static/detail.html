@@ -43,7 +43,7 @@
 							上线发起人	
 						</th>
 						<td>
-							{{workflowDetail.engineer}}
+							{{engineer_display}}
 						</td>
 						<th>
 							发起时间
@@ -57,8 +57,8 @@
 							审核人	
 						</th>
 						<td>
-							{% for reviewMan in listAllReviewMen %}
-								{{ reviewMan}}
+							{% for man in reviewman_display %}
+							{{man}}
 							{% endfor %}
 						</td>
 						<th>
@@ -75,7 +75,7 @@
 						<td>
 							{% if workflowDetail.operator == None %}
 							{% else %}
-								{{workflowDetail.operator}}
+								{{operator_display}}
 							{% endif %}
 						</td>
 						<th>
