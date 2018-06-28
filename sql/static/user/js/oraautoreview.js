@@ -207,7 +207,7 @@ var addRoleFunc = {
 				//	alert('save success');
 				//}
 			}).fail(function() {
-				alert('Interface call failed');
+				alert(data.msg);
 			})
 		})
 		// var roleArr = [];
@@ -248,7 +248,7 @@ var addRoleFunc = {
 				alert('missing data');
 			}
 		}).fail(function() {
-			alert('Interface call failed');
+			alert(data.msg);
 		})
 		$cluster_select.off('change.cluster_select').on('change.cluster_select',function() {
 			addRoleFunc.getSchemaList($cluster_select.val(),window.currentOper);
@@ -273,7 +273,7 @@ var addRoleFunc = {
 				alert('missing data');
 			}
 		}).fail(function() {
-			alert('Interface call failed');
+			alert(data.msg);
 		})
 	},
 	
@@ -293,7 +293,7 @@ var addRoleFunc = {
 				alert('missing data');
 			}
 		}).fail(function() {
-			alert('Interface call failed');
+			alert(data.msg);
 		})
 	},
 	

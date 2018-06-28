@@ -402,9 +402,6 @@ def manFinish(request):
 @csrf_exempt
 def privMod(request,operation):
     loginUser = request.session.get('login_username', False)
-    if loginUser != 'admin':
-        context = {'errMsg': '无权限访问该页面'}
-        return render(request, 'error.html', context)
 
     hasTableId = [tab.table_id for tab in ora_tab_privs.objects.filter(username = request.GET.get('username'))]
     if operation == 'add':
