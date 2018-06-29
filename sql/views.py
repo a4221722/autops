@@ -73,10 +73,12 @@ def allworkflow(request):
     listAllWorkflow = []
 
 
-    if 'navStatus' in request.GET:
-        navStatus = request.GET['navStatus']
-    else:
-        navStatus = 'all'
+    #if 'navStatus' in request.GET:
+    #    navStatus = request.GET['navStatus']
+    #else:
+    #    navStatus = 'all'
+    hasAffirmed = request.GET.get('hasAffirmed')
+    searchStatus = request.GET.get('search_status')
 
     loginUser = request.session.get('login_username', False)
     #修改全部工单、审核不通过、已执行完毕界面工程师只能看到自己发起的工单，审核人可以看到全部
@@ -87,30 +89,38 @@ def allworkflow(request):
         
     #查询workflow model，根据pageNo和navStatus获取对应的内容
     role = loginUserOb.role
-    if navStatus == 'all' and (role == '审核人' or loginUser == 'admin'):
+    if role == '审核人' or loginUser == 'admin':
         allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').order_by('-create_time')
-    elif navStatus == 'all' and role == '工程师':
+    elif role == '工程师':
         allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(engineer=loginUser).order_by('-create_time')
-    elif navStatus == 'waitingforme':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec'],Const.workflowStatus['autoreviewwrong']),review_man__icontains=loginUser ) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
-    elif (role == '审核人' or loginUser == 'admin') and navStatus == 'unaffirm':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '未确认').order_by('-create_time')
-    elif role == '工程师'  and navStatus == 'unaffirm':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(engineer=loginUser,status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '未确认').order_by('-create_time')
-    elif (role == '审核人' or loginUser == 'admin') and navStatus == 'affirm':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '已确认').order_by('-create_time')
-    elif role == '工程师'  and navStatus == 'affirm':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(engineer=loginUser,status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '已确认').order_by('-create_time')
-        #allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept'])).order_by('-create_time')
-    elif role == '工程师':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']),engineer=loginUser).order_by('-create_time')
-    elif role == '审核人' or loginUser == 'admin':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status=Const.workflowStatus[navStatus]).order_by('-create_time')
-    elif role == '工程师':
-        allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status=Const.workflowStatus[navStatus],engineer=loginUser).order_by('-create_time')
-    else:
-        context = {'errMsg': '传入参数有误！'}
-        return render(request, 'error.html', context)
+    #if navStatus == 'all' and (role == '审核人' or loginUser == 'admin'):
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').order_by('-create_time')
+    #elif navStatus == 'all' and role == '工程师':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(engineer=loginUser).order_by('-create_time')
+    #elif navStatus == 'waitingforme':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec'],Const.workflowStatus['autoreviewwrong']),review_man__icontains=loginUser ) | Q(status__in=(Const.workflowStatus['manreviewing'],Const.workflowStatus['manexec']), review_man__contains='"' + loginUser + '"')).order_by('-create_time')
+    #elif (role == '审核人' or loginUser == 'admin') and navStatus == 'unaffirm':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '未确认').order_by('-create_time')
+    #elif role == '工程师'  and navStatus == 'unaffirm':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(engineer=loginUser,status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '未确认').order_by('-create_time')
+    #elif (role == '审核人' or loginUser == 'admin') and navStatus == 'affirm':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '已确认').order_by('-create_time')
+    #elif role == '工程师'  and navStatus == 'affirm':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(engineer=loginUser,status__in=(Const.workflowStatus['finish'],Const.workflowStatus['manfinish'],),affirm = '已确认').order_by('-create_time')
+    #    #allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept'])).order_by('-create_time')
+    #elif role == '工程师':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status__in=(Const.workflowStatus['finish'],Const.workflowStatus['exception'],Const.workflowStatus['manfinish'],Const.workflowStatus['manexcept']),engineer=loginUser).order_by('-create_time')
+    #elif role == '审核人' or loginUser == 'admin':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status=Const.workflowStatus[navStatus]).order_by('-create_time')
+    #elif role == '工程师':
+    #    allFlow = workflow.objects.values('id','data_change_type','workflow_name','engineer','status','affirm','create_time','cluster_name').filter(status=Const.workflowStatus[navStatus],engineer=loginUser).order_by('-create_time')
+    #else:
+    #    context = {'errMsg': '传入参数有误！'}
+    #    return render(request, 'error.html', context)
+    if hasAffirmed:
+        allFlow = allFlow.filter(affirm = hasAffirmed)
+    if searchStatus:
+        allFlow = allFlow.filter(status = searchStatus)
     pages = math.ceil(len(allFlow)/PAGE_LIMIT)
     #参数检查
     if 'pageNo' in request.GET:
@@ -124,9 +134,9 @@ def allworkflow(request):
     listWorkflow = allFlow[offset:limit]
     for flow in listWorkflow:
         flow['engineer_display']=_mapEnDisplay(flow['engineer'])
+    flowStatus = [v for k,v in Const.workflowStatus.items()]
 
-
-    context = {'currentMenu':'allworkflow', 'listWorkflow':listWorkflow,'pages':pages, 'pageNo':pageNo, 'navStatus':navStatus, 'PAGE_LIMIT':PAGE_LIMIT, 'role':role}
+    context = {'currentMenu':'allworkflow', 'listWorkflow':listWorkflow,'pages':pages, 'pageNo':pageNo, 'navStatus':navStatus, 'PAGE_LIMIT':PAGE_LIMIT, 'role':role, 'flowStatus':flowStatus}
     return render(request, 'allWorkflow.html', context)
 
 
