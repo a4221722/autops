@@ -119,7 +119,7 @@ function pagination() {
 	var activeClass;
 	for(var i = 0; i < pagesNum; i++) {
 		activeClass = pageNoNum === i ? 'active' :'';
-		pageHTML += '<li class="' + activeClass + '"><a href="?pageNo=' + i + '">' + (i + 1) + '</a></li>'
+		pageHTML += '<li class="' + activeClass + '"><a href="?pageNo=' + i + '" data-href="'+i+'">' + (i + 1) + '</a></li>'
 	}
 	$('#last_page').after(pageHTML)
 }
@@ -469,6 +469,13 @@ function downloadSql() {
 	})
 }
 
+function allWorkflowPagination() {
+	$('#allWorkflowPagination').on('click','li',function(e) {
+		var currentPage = parseInt($(this).find('a').attr('data-href')) ;
+		var url='/allworkflow/?pageNo='+currentPage+ '&search_status=' + $('#data_change_type').val()+'&hasAffirmed='+$('#hasAffirmed').val();
+		window.location.href=url;
+	})
+}
 downloadSql();
 execSql();
 renderClusterResult();
@@ -481,3 +488,4 @@ fillQueryOraPage();
 addRoleFunc.addRole();
 allawr.init();
 // generateSnapshot();
+allWorkflowPagination();

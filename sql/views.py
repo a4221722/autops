@@ -122,22 +122,24 @@ def allworkflow(request):
     if searchStatus:
         allFlow = allFlow.filter(status = searchStatus)
     pages = math.ceil(len(allFlow)/PAGE_LIMIT)
+    pageList = [i+1 for i in range(0,pages)]
     #参数检查
     if 'pageNo' in request.GET:
-        pageNo = min(int(request.GET['pageNo']),pages-1)
+        pageNo = min(int(request.GET['pageNo']),pages)
     else:
-        pageNo = 0
-    if pageNo < 0:
-        pageNo = 0
-    offset = pageNo * PAGE_LIMIT
+        pageNo = 1
+    if pageNo < 1:
+        pageNo = 1
+    offset = (pageNo-1) * PAGE_LIMIT
     limit = offset + PAGE_LIMIT
     listWorkflow = allFlow[offset:limit]
+    pageDisplay = [pageNo+i for i in range(-5,5) if pageNo+i>0 and pageNo+i<=pages]
     for flow in listWorkflow:
         flow['engineer_display']=_mapEnDisplay(flow['engineer'])
     flowStatus = [v for k,v in Const.workflowStatus.items()]
 
-    context = {'currentMenu':'allworkflow', 'listWorkflow':listWorkflow,'pages':pages, 'pageNo':pageNo, 'navStatus':navStatus, 'PAGE_LIMIT':PAGE_LIMIT, 'role':role, 'flowStatus':flowStatus}
-    return render(request, 'allWorkflow.html', context)
+    #context = {'currentMenu':'allworkflow', 'listWorkflow':listWorkflow,'pages':pages, 'pageNo':pageNo, 'navStatus':navStatus, 'PAGE_LIMIT':PAGE_LIMIT, 'role':role, 'flowStatus':flowStatus}
+    return render(request, 'allWorkflow.html', locals())
 
 
 #提交oracle sql界面

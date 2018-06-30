@@ -3,19 +3,19 @@
 {% block content %}
 <form action="" method="get">
 	<label>工单状态:</label>
-	<select name="search_status" class="normal-select">
+	<select name="search_status" class="normal-select" id="data_change_type">
 		<option></option>
 		{% for st in flowStatus %}
-		<option>{{st}}</option>
+		<option {% if searchStatus == st %}selected{% endif %}>{{st}}</option>
 		{% endfor %}
 	</select>
 	<label>工程师确认:</label>
-	<select name="hasAffirmed" class="normal-select">
+	<select name="hasAffirmed" class="normal-select" id="hasAffirmed">
 		<option></option>
-		<option>未确认</option>
-		<option>已确认</option>
+		<option {% if hasAffirmed == '未确认'%}selected{% endif %}>未确认</option>
+		<option {% if hasAffirmed == '已确认'%}selected{% endif %}>已确认</option>
 	</select>
-	<input type="submit" class="btn btn-primary btn-sm" value="search"/>
+	<input type="submit" class="btn btn-primary btn-sm" value="搜索"/>
 </form>
 			<!-- <ul class="nav nav-tabs">
                 {% if navStatus == 'all' %}
@@ -148,40 +148,29 @@
 				</tbody>
 			</table>
 			<div style="text-align:center;">
-			<ul class="pagination" style="display:inline-block;">
-					{% if pages >= 5 %}
+			<ul class="pagination" style="display:inline-block;" id="allWorkflowPagination">
+					{% if pageNo > 1 and pages > 5 %}
 					<li>
-						<a href="?pageNo={{pageNo|add:"-1"}}">前一页</a>
-					</li>
-					<li class="active">
-						<a href="?pageNo={{pageNo|add:"0"}}">{{pageNo|add:"1"}}</a>
-					</li>
-					
-					<li>
-						<a href="?pageNo={{pageNo|add:"1"}}">{{pageNo|add:"2"}}</a>
-					</li>
-					<li>
-						<a href="?pageNo={{pageNo|add:"2"}}">{{pageNo|add:"3"}}</a>
-					</li>
-					<li>
-						<a href="?pageNo={{pageNo|add:"3"}}">{{pageNo|add:"4"}}</a>
-					</li>
-					<li>
-						<a href="?pageNo={{pageNo|add:"4"}}">{{pageNo|add:"5"}}</a>
-					</li>
-					<li>
-						<a href="?pageNo={{pageNo|add:"1"}}">后一页</a>
-					</li>
-					 {% endif %}
-
-					{% if pages < 5 and pages > 1 %}
-						<li id="last_page">
-							<a href="?pageNo={{pageNo|add:"-1"}}">前一页</a>
-						</li>
-					<li>
-						<a href="?pageNo={{pageNo|add:"1"}}">后一页</a>
+						<a data-href="1">首页</a>
 					</li>
 					{% endif %}
+					{% if pageNo > 1%}
+					<li>
+						<a data-href="{{pageNo|add:"-1"}}">前一页</a>
+					</li>
+					{% endif %}
+					{% for i in pageDisplay %}
+					<li {% if i == pageNo %}class="active" {% endif %}>
+						<a data-href="{{i}}">{{i}}</a>
+					</li>
+					{% endfor %}
+					
+					{% if pageNo < pages%}
+					<li>
+						<a data-href="{{pageNo|add:"1"}}">后一页</a>
+					</li>
+					{% endif %}
+					 
 			</ul>
 			</div>
 			<script>
