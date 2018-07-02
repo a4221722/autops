@@ -286,7 +286,7 @@ def workflowSubmit(request):
     if data_change_type in ('数据修订','数据初始化') and sqlContent:
         oraAutoReview.delay(workflowId)
 
-    url = _getDetailUrl(request) + str(workflowId)
+    url = _getDetailUrl(request) + str(workflowId) +'/'
     strTitle = "新的SQL上线工单提醒 # " + str(workflowId)
     objEngineer = users.objects.get(username=engineer)
     for reviewMan in listAllReviewMen:
