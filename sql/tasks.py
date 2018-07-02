@@ -96,7 +96,7 @@ def oraAutoReview(workflowId):
     try:
         parseResult = daoora.sqlAutoreview(sqlContent,clusterNameStr)
     except Exception as err:
-        workflowStatus = Const.workflowStatus['manexec']
+        workflowStatus = Const.workflowStatus['autoreviewwrong']
         jsonResult = json.dumps([{
             'clustername':workflowDetail.cluster_name,
             'id':1,

@@ -5,6 +5,7 @@
 .idea/
 .DS_Store
 archer/settings.py.github
+archer/settings.py
 settings.py
 awr/*.html
 __pycache__/*

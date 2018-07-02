@@ -9,21 +9,22 @@ from .aes_decryptor import Prpcrypt
 import datetime
 import re
 import json
-import sqlparse
+from .mysqlparse import MySqlparse
 import pdb
 prpCryptor = Prpcrypt()
-commentPattern = re.compile(r'^.*((--)|(/\*.*\*/)).*$',re.DOTALL)
-selUdpPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*(select).+for.+update.*$',re.DOTALL)
-selPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*(select).+$',re.DOTALL)
-inselPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*insert\s+into\s*(\S+\.{1}\S+).*(select.+)(from.+)$',re.DOTALL)
-invalPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*insert\s+into\s+(\S+\.{1}\S+).*values.+$',re.DOTALL)
-updatePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*update\s+(\S+\.{1}\S+.+)set\s+.+?(where.+)$',re.DOTALL)
-deletePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*delete\s+(from\s+)?(\S+\.{1}\S+.+?)(where.+)$',re.DOTALL)
-ddlPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*((create\s+(table|sequence|index))|(alter\s+(table|sequence|index))|(comment\s+on\s+(table|column)))\s+(\S+\.{1}\S+).+$',re.DOTALL)
+#commentPattern = re.compile(r'^.*((--)|(/\*.*\*/)).*$',re.DOTALL)
+#selUdpPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*(select).+for.+update.*$',re.DOTALL)
+#selPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*(select).+$',re.DOTALL)
+#inselPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*insert\s+into\s*(\S+\.{1}\S+).*(select.+)(from.+)$',re.DOTALL)
+#invalPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*insert\s+into\s+(\S+\.{1}\S+).*values.+$',re.DOTALL)
+#updatePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*update\s+(\S+\.{1}\S+.+)set\s+.+?(where.+)$',re.DOTALL)
+#deletePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*delete\s+(from\s+)?(\S+\.{1}\S+.+?)(where.+)$',re.DOTALL)
+#ddlPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*((create\s+(table|sequence|index))|(alter\s+(table|sequence|index))|(comment\s+on\s+(table|column)))\s+(\S+\.{1}\S+).+$',re.DOTALL)
 descPattern = re.compile(r'^\s*desc\s+(\S+\.{1}\S+)\s*$')
 showIndPattern = re.compile(r'^\s*show\s+index\s+from\s+(\S+\.{1}\S+)\s*$')
 _CHART_DAYS = 90
 
+myparse = MySqlparse()
 __all__ = ('getAllSchemaByCluster','getAllTableByCluster','getWorkChartsByMonth','getWorkChartsByPerson','sqlAutoreview','executeFinal','query')
 
 def _mapEnDisplay(userName):
@@ -179,10 +180,10 @@ class DaoOra(object):
                 continue
             else:
                 cursor = conn.cursor()
-            sqlList = sqlparse.split(sqlContent) #sqlContent.rstrip(';').replace('\r\n','\n').split(';')
+            sqlList = myparse.split(sqlContent) #sqlContent.rstrip(';').replace('\r\n','\n').split(';')
             #lastSql = ''
             cntId = 1
-            for i in range(0,len(sqlList)):
+            for l in range(0,len(sqlList)):
                 RESULT_DICT = {
                     'clustername':None,
                     'id':cntId,
@@ -196,7 +197,7 @@ class DaoOra(object):
                     'backup_dbname':None,
                     'execute_time':0,
                     'real_rows':0}
-                sql = sqlList[i].strip().rstrip(';')
+                sql = sqlList[l].strip().rstrip(';')
                 epsql = 'explain plan for '+sql
                 try:
                     cursor.execute(epsql)
@@ -222,7 +223,7 @@ class DaoOra(object):
                     RESULT_DICT['errormessage']="解析通过"
                     cntId += 1
                     #resultList.append([1,'CHECKED',0,'parse completed','parse compeleted',sql,rowsAffected,'0_0_1','test',0,0])
-                parseResult = sqlparse.parse(sql)[0]
+                parseResult = myparse.parse(sql)[0]
                 parseDict = {}
                 tokensList = parseResult.tokens
                 for i in range(0,len(tokensList)):
