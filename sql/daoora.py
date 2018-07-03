@@ -184,44 +184,34 @@ class DaoOra(object):
             #lastSql = ''
             cntId = 1
             for l in range(0,len(sqlList)):
+                sql = sqlList[l].strip().rstrip(';')
                 RESULT_DICT = {
-                    'clustername':None,
+                    'clustername':clusterName,
                     'id':cntId,
                     'stage':None,
                     'errlevel':0,
                     'stagestatus':None,
                     'errormessage':None,
-                    'sql':None,
+                    'sql':sql,
                     'est_rows':0,
                     'sequence':None,
                     'backup_dbname':None,
                     'execute_time':0,
                     'real_rows':0}
-                sql = sqlList[l].strip().rstrip(';')
                 epsql = 'explain plan for '+sql
                 try:
                     cursor.execute(epsql)
                 except cx_Oracle.Error as e:
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=cntId
                     RESULT_DICT['stage']='UNCHECKED'
                     RESULT_DICT['stagestatus']='解析失败'
                     RESULT_DICT['errormessage']=str(e)
-                    RESULT_DICT['sql']=sql
                     resultList.append(RESULT_DICT)
                     #resultList.append([1,'CHECKED',0,'parsed error: ',str(e),sql,0,'0_0_1','test',0,0])
-                    conn.rollback()
-                    cursor.close()
-                    conn.close()
-                    return resultList
+                    continue
                 else:
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=cntId
                     RESULT_DICT['stage']='CHECKED'
                     RESULT_DICT['stagestatus']='解析通过'
-                    RESULT_DICT['sql']=sql
                     RESULT_DICT['errormessage']="解析通过"
-                    cntId += 1
                     #resultList.append([1,'CHECKED',0,'parse completed','parse compeleted',sql,rowsAffected,'0_0_1','test',0,0])
                 parseResult = myparse.parse(sql)[0]
                 parseDict = {}
@@ -236,17 +226,11 @@ class DaoOra(object):
                         opt_id = i
                         break
                 if parseDict['operation'] not in ('insert','update','delete','create','alter','drop','grant','comment'):
-                    RESULT_DICT['clustername']=clusterName
-                    RESULT_DICT['id']=cntId
                     RESULT_DICT['stage']='UNCHECKED'
                     RESULT_DICT['stagestatus']='解析失败'
                     RESULT_DICT['errormessage']='不支持的操作: '+parseDict['operation']
-                    RESULT_DICT['sql']=sql
                     resultList.append(RESULT_DICT)
-                    conn.rollback()
-                    cursor.close()
-                    conn.close()
-                    return resultList
+                    continue
 
                 if parseDict['operation'] in ('insert','delete','update'):
                     for j in range(i,len(tokensList)):
@@ -265,18 +249,12 @@ class DaoOra(object):
                                 where_id = k
                                 break
                     if parseDict['operation'] in ('insert','delete','update') and (not parseDict.get('tab') or not parseDict.get('whereSt')):
-                        RESULT_DICT['clustername']=clusterName
-                        RESULT_DICT['id']=cntId
                         RESULT_DICT['stage']='UNCHECKED'
                         RESULT_DICT['stagestatus']='解析失败'
                         RESULT_DICT['errormessage']='缺少表名或where子句'
-                        RESULT_DICT['sql']=sql
                         resultList.append(RESULT_DICT)
                         #resultList.append([1,'CHECKED',0,'parsed error: ',str(e),sql,0,'0_0_1','test',0,0])
-                        conn.rollback()
-                        cursor.close()
-                        conn.close()
-                        return resultList
+                        continue
                 if parseDict['operation']=='instval':
                     RESULT_DICT['est_rows']=1
                 elif parseDict['operation'] in ('insert','delete','update'):
@@ -287,6 +265,7 @@ class DaoOra(object):
                 else:
                     RESULT_DICT['est_rows']=0
                 resultList.append(RESULT_DICT)
+                cntId += 1
             cursor.close()
             conn.close()
         return resultList

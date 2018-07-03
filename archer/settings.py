@@ -163,7 +163,10 @@ if ENABLE_LDAP:
         ldap.SCOPE_SUBTREE, "(objectClass=groupOfUniqueNames)"
     )
     AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
+    #LDAP登陆时，会同步下面列表中的信息
     AUTH_LDAP_USER_ATTRLIST = [ "sn", "mail"]
+
+    #LDAP到表字段的映射关系
     AUTH_LDAP_USER_ATTR_MAP = {
         "display": "sn",
         "email": "mail"
