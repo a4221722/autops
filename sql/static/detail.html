@@ -281,6 +281,13 @@
 					<input type="button" data-toggle="modal" class="btn btn-default" data-target="#show_manual_log" value="手工操作日志" />
 				{% endif %}
 			{% if loginUser in listAllReviewMen %}
+				{% if workflowDetail.status == workflowStatus.manexec and workflowDetail.operator|length == 0 %}
+					<form action="/assigntome/"  method="post" style="display:inline-block;">
+						{% csrf_token %}
+						<input type="hidden" name="workflowid" value="{{workflowDetail.id}}">
+						<input type="button" id="btnExecute" onclick="execute(event,this)" class="btn btn-primary btn-default" data-loading-text="Loading..." value="指派给我" />
+					</form>
+				{% endif %}
 				{% if workflowDetail.status == workflowStatus.manreviewing or workflowDetail.status == workflowStatus.autoreviewwrong %}
 					<form action="/execute/"  method="post" style="display:inline-block;">
 						{% csrf_token %}

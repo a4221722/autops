@@ -24,6 +24,7 @@
 						<option value="数据修订" {% if data_change_type == "数据修订" %}selected{% endif %}>数据修订</option>
 						<option value="数据初始化" {% if data_change_type == "数据初始化" %}selected{% endif %}>数据初始化(提交sql脚本)</option>
 						<option value="数据迁移" {% if data_change_type == "数据迁移" %}selected{% endif %}>数据迁移(文字描述)</option>
+						<option value="表结构变更" {% if data_change_type == "表结构变更" %}selected{% endif %}>表结构变更</option>
 						<option value="其他" {% if data_change_type == "其他" %}selected{% endif %}>其他</option>
                     </select>
                 </div>

@@ -649,3 +649,29 @@ def myPrivs(request):
     listCluster = ora_primary_config.objects.all().order_by('cluster_name')
     currentMenu='myprivs'
     return render(request,'myprivs.html',locals())
+
+def assignToMe(request):
+    loginUser = request.session.get('login_username')
+    workflowId = request.POST['workflowid']
+    with transaction.atomic():
+        try:
+            workflowDetail = workflow.objects.select_for_update().get(id=workflowId,status=Const.workflowStatus['manexec'],operator=None)
+        except Exception:
+            context = {'errMsg': '获取工单状态失败或者已经有人在处理'}
+            return render(request, 'error.html', context)
+        try:
+            reviewMen = json.loads(workflowDetail.review_man)
+        except Exception:
+            reviewMen = workflowDetail.review_man
+        
+        if not loginUser in reviewMen:
+            context = {'errMsg': '你不在审核人之列'}
+            return render(request, 'error.html', context)
+        workflowDetail.operator = loginUser
+        try:
+            workflowDetail.save()
+        except Exception as e:
+            context = {'errMsg': str(e)}
+            return render(request, 'error.html', context)
+        else:
+            return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 

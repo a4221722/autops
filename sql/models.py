@@ -72,7 +72,7 @@ class workflow(models.Model):
     sql_content = models.TextField('具体sql内容')
     execute_result = models.TextField('执行结果的JSON格式')
     message = models.TextField('备注说明',null=True)
-    data_change_type = models.CharField('数据变更类型',choices=(('数据修订','数据修订'),('数据初始化','数据初始化'),('数据迁移','数据迁移')),max_length=50)
+    data_change_type = models.CharField('数据变更类型',choices=(('数据修订','数据修订'),('数据初始化','数据初始化'),('数据迁移','数据迁移'),('表结构变更','表结构变更')),max_length=50)
     reason = models.CharField('原因',max_length=200)
     operator = models.CharField('处理人', max_length=50,null=True)
     affirm = models.CharField('工程师是否确认',max_length=10,default='未确认',choices=(('未确认','未确认'),('已确认','已确认')))

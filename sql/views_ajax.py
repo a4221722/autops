@@ -356,17 +356,25 @@ def manExec(request):
         except Exception:
             result = {'msg': '已经在处理'}
             return HttpResponse(json.dumps(result), content_type='application/json')
+        try:
+            reviewMen = json.loads(workflowDetail.review_man)
+        except Exception:
+            reviewMen = workflowDetail.review_man
+        
+        if not loginUser in reviewMen:
+            result = {'msg': '你不在审核人之列'}
+            return HttpResponse(json.dumps(result), content_type='application/json')
 
-    workflowDetail.status = Const.workflowStatus['manexec']
-    workflowDetail.operator = loginUser
-    try:
-        workflowDetail.save()
-    except Exception as e:
-        status = -1
-        msg = str(e)
-    else:
-        status = 2
-        msg = '更改状态为手工执行'
+        workflowDetail.status = Const.workflowStatus['manexec']
+        workflowDetail.operator = loginUser
+        try:
+            workflowDetail.save()
+        except Exception as e:
+            status = -1
+            msg = str(e)
+        else:
+            status = 2
+            msg = '更改状态为手工执行'
     result = {"status":status,"msg":msg}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
