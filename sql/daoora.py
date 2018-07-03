@@ -259,15 +259,35 @@ class DaoOra(object):
                     RESULT_DICT['est_rows']=1
                 elif parseDict['operation'] in ('delete','update'):
                     estSql = 'select count(*) from '+parseDict['tab']+' '+parseDict['whereSt']
-                    cursor.execute(estSql)
-                    for row in cursor:
-                        RESULT_DICT['est_rows']=row[0]
+                    try:
+                        cursor.execute(estSql)
+                    except Exception as err:
+                        RESULT_DICT['stage']='UNCHECKED'
+                        RESULT_DICT['stagestatus']='估算出错'
+                        RESULT_DICT['errormessage']='估算语句错误'
+                        resultList.append(RESULT_DICT)
+                        continue
+                    else:
+                        for row in cursor:
+                            RESULT_DICT['est_rows']=row[0]
                 elif parseDict['operation'] == 'insert':
                     for l in range(tab_id,len(tokensList)):
                         if str(tokensList[l].ttype) == 'Token.Keyword' and tokensList[l].value.lower()=='from' and parseDict['operation']=='insert':
                             from_id = l
                             break
                     estSql = 'select count(*) '+' '.join([tk.value for tk in tokensList[from_id:]])
+                    try:
+                        cursor.execute(estSql)
+                    except Exception as err:
+                        RESULT_DICT['stage']='UNCHECKED'
+                        RESULT_DICT['stagestatus']='估算出错'
+                        RESULT_DICT['errormessage']='估算语句错误'
+                        resultList.append(RESULT_DICT)
+                        continue
+                    else:
+                        for row in cursor:
+                            RESULT_DICT['est_rows']=row[0]
+                elif parseDict['operation'] == 'insert':
                     cursor.execute(estSql)
                     for row in cursor:
                         RESULT_DICT['est_rows']=row[0]
