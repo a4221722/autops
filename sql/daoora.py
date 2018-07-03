@@ -233,13 +233,13 @@ class DaoOra(object):
                     continue
 
                 if parseDict['operation'] in ('insert','delete','update'):
-                    for j in range(i,len(tokensList)):
+                    for j in range(opt_id,len(tokensList)):
                         if not tokensList[j].ttype:
                             if str(tokensList[j].tokens[0].ttype) == 'Token.Name':
                                 parseDict['tab'] = str(tokensList[j])
                                 tab_id = j
                                 break
-                    for k in range(j,len(tokensList)):
+                    for k in range(tab_id,len(tokensList)):
                         if str(tokensList[k].ttype) == 'Token.Keyword' and tokensList[k].value.lower()=='values' and parseDict['operation']=='insert':
                             parseDict['operation']='instval'
                             break
@@ -248,7 +248,7 @@ class DaoOra(object):
                                 parseDict['whereSt'] = str(tokensList[k]).rstrip(';')
                                 where_id = k
                                 break
-                    if parseDict['operation'] in ('insert','delete','update') and (not parseDict.get('tab') or not parseDict.get('whereSt')):
+                    if parseDict['operation'] in ('insert','delete','update') and not parseDict.get('whereSt'):
                         RESULT_DICT['stage']='UNCHECKED'
                         RESULT_DICT['stagestatus']='解析失败'
                         RESULT_DICT['errormessage']='缺少表名或where子句'
@@ -257,8 +257,17 @@ class DaoOra(object):
                         continue
                 if parseDict['operation']=='instval':
                     RESULT_DICT['est_rows']=1
-                elif parseDict['operation'] in ('insert','delete','update'):
+                elif parseDict['operation'] in ('delete','update'):
                     estSql = 'select count(*) from '+parseDict['tab']+' '+parseDict['whereSt']
+                    cursor.execute(estSql)
+                    for row in cursor:
+                        RESULT_DICT['est_rows']=row[0]
+                elif parseDict['operation'] == 'insert':
+                    for l in range(tab_id,len(tokensList)):
+                        if str(tokensList[l].ttype) == 'Token.Keyword' and tokensList[l].value.lower()=='from' and parseDict['operation']=='insert':
+                            from_id = l
+                            break
+                    estSql = 'select count(*) '+' '.join([tk.value for tk in tokensList[from_id:]])
                     cursor.execute(estSql)
                     for row in cursor:
                         RESULT_DICT['est_rows']=row[0]
