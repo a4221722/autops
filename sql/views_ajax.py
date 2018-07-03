@@ -385,7 +385,7 @@ def manFinish(request):
     executeStatus = request.POST['status']
     executeResult = request.POST['content']
     workflowDetail = workflow.objects.get(id=workflowId)
-    if loginUser != workflowDetail.operator and workflowDetail.data_change_type not in ('数据迁移','其他'):
+    if loginUser != workflowDetail.operator:
         result = {"status":-1,"msg":"需要处理人操作"}
         return HttpResponse(json.dumps(result), content_type='application/json')
 
