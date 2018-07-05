@@ -27,6 +27,7 @@ from .tasks import oraAutoReview,mailDba,wechatDba
 
 daoora = DaoOra()
 prpCryptor = Prpcrypt()
+cryColList = ['cert_no','qq','present_address','cell','card_no']
 
 configMap = {
     'oracle':ora_primary_config,
@@ -558,14 +559,21 @@ def queryora(request):
             context = {'errMsg':msg}
             return render(request, 'error.html', context)
         header_list = headerList
+        crtList = []
+        for cnt in range(0,len(headerList)):
+            if headerList[cnt].lower() in cryColList:
+                crtList.append(cnt)
         query_result_p = []
         for row in queryResultP:
             strRow = []
             for i in range(0,len(row)):
-                try:
-                    strRow.append(str(row[i]))
-                except:
-                    strRow.append('byte data type')
+                if i in crtList:
+                    strRow.append(prpCryptor.encrypt(str(row[i])))
+                else:
+                    try:
+                        strRow.append(str(row[i]))
+                    except:
+                        strRow.append('byte data type')
             query_result_p.append(strRow)
     currentMenu='queryora'
     return render(request, 'queryora.html', locals())
