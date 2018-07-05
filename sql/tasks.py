@@ -56,8 +56,8 @@ def syncDictData(clusterListSync):
             try:
                 ora_tables(instance_id=primary.id,schema_name=table[0], table=table[1]).save()
             except IntegrityError:
-                operationRecord.message+=table[0]+'.'+table[1]+'已存在'+'$$'
-                operationRecord.save()
+                #operationRecord.message+=table[0]+'.'+table[1]+'已存在'+'$$'
+                #operationRecord.save()
                 continue
             except Exception as e:
                 operationRecord.status='有异常'
