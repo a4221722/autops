@@ -27,7 +27,7 @@ from .tasks import oraAutoReview,mailDba,wechatDba
 
 daoora = DaoOra()
 prpCryptor = Prpcrypt()
-cryColList = ['cert_no','qq','present_address','cell','card_no']
+cryColList = ['cert_no','qq','cell','card_no']
 
 configMap = {
     'oracle':ora_primary_config,
