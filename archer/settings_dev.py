@@ -30,7 +30,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'hfusaf2m4ot#7)fkw#di2bu6(cv0@opwmafx5n#6=3d%x^hpl6'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG =  False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -45,11 +45,11 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_comments',
+    'django.contrib.sites',
     'djcelery',
     'kombu.transport.django',
     'sql',
     'dbmonitor',
-    'django.contrib.sites',
     'my_comment',
 )
 COMMENTS_APP = 'my_comment'
@@ -122,8 +122,8 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'autops',
         'USER': 'root',
-        'PASSWORD': 'huored',
-        'HOST': '127.0.0.1',
+        'PASSWORD': '',
+        'HOST': '',
         'PORT': ''
     }
 }
@@ -156,14 +156,17 @@ if ENABLE_LDAP:
     #}
     AUTH_LDAP_BIND_DN = "cn=Manager,dc=huored,dc=com"
     AUTH_LDAP_BIND_PASSWORD = "huored"
-    AUTH_LDAP_SERVER_URI = "ldap://183.129.201.236"
+    AUTH_LDAP_SERVER_URI = "ldap://10.0.0.200"
     AUTH_LDAP_BASEDN = "ou=tech,ou=dept,dc=huored,dc=com"
     AUTH_LDAP_USER_DN_TEMPLATE = "uid=%(user)s,ou=tech,ou=dept,dc=huored,dc=com"
     AUTH_LDAP_GROUP_SEARCH = LDAPSearch("ou=tech,ou=dept,dc=huored,dc=com",
         ldap.SCOPE_SUBTREE, "(objectClass=groupOfUniqueNames)"
     )
     AUTH_LDAP_GROUP_TYPE = GroupOfUniqueNamesType()
+    #LDAP登陆时，会同步下面列表中的信息
     AUTH_LDAP_USER_ATTRLIST = [ "sn", "mail"]
+
+    #LDAP到表字段的映射关系
     AUTH_LDAP_USER_ATTR_MAP = {
         "display": "sn",
         "email": "mail"
@@ -225,13 +228,13 @@ LOGGING = {
 
 #是否开启邮件提醒功能：发起SQL上线后会发送邮件提醒审核人审核，执行完毕会发送给DBA. on是开，off是关，配置为其他值均会被archer认为不开启邮件功能
 MAIL_ON_OFF='on'
-WECHAT_ON_OFF='on'
+WECHAT_ON_OFF='off'
 
 MAIL_REVIEW_SMTP_SERVER='smtp.huored.com'
 MAIL_REVIEW_SMTP_PORT=587
 MAIL_REVIEW_FROM_ADDR='luoji@huored.com'                                               #发件人，也是登录SMTP server需要提供的用户名
 MAIL_REVIEW_FROM_PASSWORD='qdl2011'                                                             #发件人邮箱密码，如果为空则不需要login SMTP server
-MAIL_REVIEW_DBA_ADDR=['luoji@huored.com','ziyu@huored.com','endong@huored.com']        #DBA地址，执行完毕会发邮件给DBA，以list形式保存
+MAIL_REVIEW_DBA_ADDR=['luoji@huored.com',]#['luoji@huored.com','ziyu@huored.com','endong@huored.com']        #DBA地址，执行完毕会发邮件给DBA，以list形式保存
 #是否过滤【DROP DATABASE】|【DROP TABLE】|【TRUNCATE PARTITION】|【TRUNCATE TABLE】等高危DDL操作：
 #on是开，会首先用正则表达式匹配sqlContent，如果匹配到高危DDL操作，则判断为“自动审核不通过”；off是关，直接将所有的SQL语句提交给inception，对于上述高危DDL操作，只备份元数据
 CRITICAL_DDL_ON_OFF='off'
@@ -249,5 +252,5 @@ RESULT_DICT = {
     'backup_dbname':None,
     'execute_time':0,
     'real_rows':0}
-WAN_HOST = '122.224.104.250:18090'
+WAN_HOST = '183.129.201.236:18090'
 CELERYBEAT_SCHEDULER='djcelery.schedulers.DatabaseScheduler'
