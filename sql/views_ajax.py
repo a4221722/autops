@@ -26,7 +26,7 @@ from .models import users, workflow,ora_primary_config, ora_tables,ora_tab_privs
 from sql.sendmail import MailSender
 from .getnow import getNow
 import logging
-from sql.tasks import syncDictData
+from sql.tasks import syncDictData,mailDba,wechatDba
 
 logger = logging.getLogger('default')
 mailSender = MailSender()
@@ -378,6 +378,13 @@ def manExec(request):
     result = {"status":status,"msg":msg}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
+#获取当前请求url
+def _getDetailUrl(request):
+    scheme = request.scheme
+    #host = request.META['HTTP_HOST']
+    host = getattr(settings,'WAN_HOST')
+    return "%s://%s/detail/" % (scheme, host)
+
 @csrf_exempt
 def manFinish(request):
     loginUser = request.session.get('login_username')
@@ -405,6 +412,20 @@ def manFinish(request):
     else:
         status = 2
         msg = '保存成功'
+    #如果执行完毕了，则根据settings.py里的配置决定是否给提交者和DBA一封邮件提醒.DBA需要知晓审核并执行过的单子
+    url = _getDetailUrl(request) + str(workflowId) + '/'
+
+    #给主、副审核人，申请人，DBA各发一封邮件
+    engineer = workflowDetail.engineer
+    operator = workflowDetail.operator
+    workflowStatus = workflowDetail.status
+    workflowName = workflowDetail.workflow_name
+    objEngineer = users.objects.get(username=engineer)
+    strTitle = "SQL上线工单执行完毕 # " + str(workflowId)
+    strContent = "发起人：" + engineer + "\n操作人：" + operator + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus
+    mailDba.delay(strTitle, strContent, [objEngineer.email])
+    wechatDba.delay(strTitle, strContent,objEngineer.wechat_account)
+
     result = {"status":status,"msg":msg}
     return HttpResponse(json.dumps(result), content_type='application/json')
 
