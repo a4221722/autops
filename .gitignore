@@ -6,5 +6,5 @@
 .DS_Store
 awr/*.html
 __pycache__/*
-archer/settings.py.prod
-archer/settings.py.dev
+archer/settings.py
+archer/settings_dev.py
