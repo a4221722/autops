@@ -15,6 +15,13 @@
 		<option {% if hasAffirmed == '未确认'%}selected{% endif %}>未确认</option>
 		<option {% if hasAffirmed == '已确认'%}selected{% endif %}>已确认</option>
 	</select>
+	{% if role == '审核人' %}
+	<label>是否已处理:</label>
+	<select name="wait_process" class="normal-select" id="wait_process">
+		<option></option>
+		<option {% if waitForPrc == '待我处理'%}selected{% endif %}>待我处理</option>
+	</select>
+	{% endif %}
 	<input type="submit" class="btn btn-primary btn-sm" value="搜索"/>
 </form>
 			<!-- <ul class="nav nav-tabs">

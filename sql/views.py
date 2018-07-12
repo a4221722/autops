@@ -80,6 +80,7 @@ def allworkflow(request):
     #    navStatus = 'all'
     hasAffirmed = request.GET.get('hasAffirmed')
     searchStatus = request.GET.get('search_status')
+    waitForPrc = request.GET.get('wait_process')
 
     loginUser = request.session.get('login_username', False)
     #修改全部工单、审核不通过、已执行完毕界面工程师只能看到自己发起的工单，审核人可以看到全部
@@ -122,6 +123,8 @@ def allworkflow(request):
         allFlow = allFlow.filter(affirm = hasAffirmed)
     if searchStatus:
         allFlow = allFlow.filter(status = searchStatus)
+    if waitForPrc and waitForPrc == '待我处理':
+        allFlow = allFlow.filter(review_man__contains='"' + loginUser + '"',status__in = (Const.workflowStatus['manreviewing'],Const.workflowStatus['autoreviewwrong'],Const.workflowStatus['manexec']))
     pages = math.ceil(len(allFlow)/PAGE_LIMIT)
     pageList = [i+1 for i in range(0,pages)]
     #参数检查
