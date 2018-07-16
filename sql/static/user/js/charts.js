@@ -13,7 +13,7 @@ $(document).ready(function() {
         }
       },
       title: {
-        text: '近三月内工单数量'
+        text: '当月内工单数量'
       },
       xAxis: {},
       yAxis: {
@@ -39,7 +39,7 @@ $(document).ready(function() {
         }
       },
       title: {
-        text: '近三月内个人工单数量龙虎榜TOP 50'
+        text: '当月个人工单数量龙虎榜TOP 50'
       },
       xAxis: {},
       yAxis: {

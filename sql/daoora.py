@@ -22,7 +22,6 @@ deletePattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*delete\s+(from\s+)?(\
 ddlPattern = re.compile(r'^\s*((--.*\n+)|(/\*.*\*/))*\s*((create\s+(table|sequence|index))|(alter\s+(table|sequence|index))|(comment\s+on\s+(table|column)))\s+(\S+\.{1}\S+).+$',re.DOTALL)
 descPattern = re.compile(r'^\s*desc\s+(\S+\.{1}\S+)\s*$')
 showIndPattern = re.compile(r'^\s*show\s+index\s+from\s+(\S+\.{1}\S+)\s*$')
-_CHART_DAYS = 90
 
 myparse = MySqlparse()
 __all__ = ('getAllSchemaByCluster','getAllTableByCluster','getWorkChartsByMonth','getWorkChartsByPerson','sqlAutoreview','executeFinal','query')
@@ -133,7 +132,7 @@ class DaoOra(object):
 
     def getWorkChartsByMonth(self):
         cursor = connection.cursor()
-        sql = "select DATE_FORMAT(create_time,'%Y-%m-%d'),count(*) from sql_workflow where create_time>=SUBDATE(now(), INTERVAL {} DAY) group by DATE_FORMAT(create_time,'%Y-%m-%d')  order by 1 asc" .format(_CHART_DAYS)
+        sql = "select DATE_FORMAT(create_time,'%Y-%m-%d'),count(*) from sql_workflow where create_time>=DATE_FORMAT(now(),'%Y-%m') group by DATE_FORMAT(create_time,'%Y-%m-%d')  order by 1 asc"
         try:
             cursor.execute(sql)
             result = cursor.fetchall()
@@ -143,7 +142,7 @@ class DaoOra(object):
 
     def getWorkChartsByPerson(self):
         cursor = connection.cursor()
-        sql = "select engineer, count(*) as cnt from sql_workflow where create_time>=SUBDATE(now(), INTERVAL {} DAY) group by engineer order by cnt desc limit 50".format(_CHART_DAYS)
+        sql = "select engineer, count(*) as cnt from sql_workflow where create_time>=DATE_FORMAT(now(),'%Y-%m') group by engineer order by cnt desc limit 50"
         cursor.execute(sql)
         resultF = cursor.fetchall()
         result = [[_mapEnDisplay(row[0]),row[1]] for row in resultF]
