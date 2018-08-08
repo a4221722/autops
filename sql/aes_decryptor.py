@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*- 
 from Crypto.Cipher import AES
 from binascii import b2a_hex, a2b_hex
 
@@ -16,7 +17,7 @@ class Prpcrypt():
         #24（AES-192）,或者32 （AES-256）Bytes 长度
         #目前AES-128 足够目前使用
         length = 16
-        count = len(text)
+        count = len(text.encode('utf-8'))
         if count < length:
             add = (length-count)
             #\0 backspace
