@@ -23,7 +23,7 @@ from .sendmail import MailSender
 from .aes_decryptor import Prpcrypt
 from .models import *
 from .getnow import getNow
-from .tasks import oraAutoReview,mailDba,wechatDba
+from .tasks import oraAutoReview,mailDba,wechatDba,dingDba
 
 daoora = DaoOra()
 prpCryptor = Prpcrypt()
@@ -300,6 +300,7 @@ def workflowSubmit(request):
         objReviewMan = users.objects.get(username=reviewMan)
         mailDba.delay(strTitle, strContent, [objReviewMan.email])
         wechatDba.delay(strTitle,strContent,objReviewMan.wechat_account)
+        dingDba.delay(strContent,objReviewMan.mobile)
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 
 
@@ -415,6 +416,7 @@ def execute(request):
     strContent = "发起人：" + engineer + "\n审核人：" + reviewMen + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus
     mailDba.delay(strTitle, strContent, [objEngineer.email])
     wechatDba.delay(strTitle, strContent,objEngineer.wechat_account)
+    dingDba.delay(strContent,objEngineer.mobile)
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/') 
 
@@ -461,12 +463,14 @@ def cancel(request):
             objReviewMan = users.objects.get(username=reviewMan)
             mailDba.delay(strTitle, strContent, [objReviewMan.email])
             wechatDba.delay(strTitle, strContent, objReviewMan.wechat_account)
+            dingDba.delay(strContent,objReviewMan.mobile)
     else:
         objEngineer = users.objects.get(username=engineer)
         strTitle = "SQL上线工单被拒绝执行 # " + str(workflowId)
         strContent = "发起人：" + engineer + "\n审核人：" + reviewMan + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus +"\n提醒：此工单被拒绝执行，请登陆重新提交或修改工单"
         mailDba.delay(strTitle, strContent, [objEngineer.email])
         wechatDba.delay(strTitle, strContent, objEngineer.wechat_account)
+        dingDba.delay(strContent,objEngineer.mobile)
 
     return HttpResponseRedirect('/detail/' + str(workflowId) + '/')
 
@@ -571,7 +575,7 @@ def queryora(request):
             strRow = []
             for i in range(0,len(row)):
                 if i in crtList:
-                    strRow.append(prpCryptor.encrypt(str(row[i])))
+                    strRow.append(prpCryptor.encrypt(row[i]))
                 else:
                     try:
                         strRow.append(str(row[i]))

@@ -15,6 +15,7 @@ class users(AbstractUser):
     role = models.CharField('角色', max_length=20, choices=(('工程师','工程师'),('审核人','审核人'),('其他','其他')), default='其他')
     is_ldapuser = models.BooleanField('ldap用戶', default=False)
     wechat_account = models.CharField('企业微信名', max_length=50,null=True)
+    mobile = models.CharField('手机号', max_length=20,null=True)
 
     def __str__(self):
         return self.username

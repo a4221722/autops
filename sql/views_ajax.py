@@ -26,7 +26,7 @@ from .models import users, workflow,ora_primary_config, ora_tables,ora_tab_privs
 from sql.sendmail import MailSender
 from .getnow import getNow
 import logging
-from sql.tasks import syncDictData,mailDba,wechatDba
+from sql.tasks import syncDictData,mailDba,wechatDba,dingDba
 
 logger = logging.getLogger('default')
 mailSender = MailSender()
@@ -425,6 +425,7 @@ def manFinish(request):
     strContent = "发起人：" + engineer + "\n操作人：" + operator + "\n工单地址：" + url + "\n工单名称： " + workflowName +"\n执行结果：" + workflowStatus
     mailDba.delay(strTitle, strContent, [objEngineer.email])
     wechatDba.delay(strTitle, strContent,objEngineer.wechat_account)
+    dingDba.delay(strContent,objEngineer.mobile)
 
     result = {"status":status,"msg":msg}
     return HttpResponse(json.dumps(result), content_type='application/json')

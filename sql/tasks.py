@@ -10,6 +10,7 @@ from django.db.utils import IntegrityError
 from django.conf import settings
 from .sendmail import MailSender
 from .wechat import WechatAlert
+from .dingtalk import dingAlert
 
 daoora=DaoOra()
 mailSender = MailSender()
@@ -145,3 +146,8 @@ def wechatDba(strTitle, strContent,user):
     if hasattr(settings, 'WECHAT_ON_OFF') == True and getattr(settings, 'WECHAT_ON_OFF') == "on":
         wechatalert.sendMessage(user, strTitle, strContent)
 
+@task()
+def dingDba(strContent,mobile):
+#如果开启钉钉通知，则发送钉钉消息
+    if hasattr(settings, 'DINGTALK_ON_OFF') == True and getattr(settings, 'DINGTALK_ON_OFF') == "on":
+        dingAlert(strContent,mobile)

@@ -226,6 +226,7 @@ LOGGING = {
 #是否开启邮件提醒功能：发起SQL上线后会发送邮件提醒审核人审核，执行完毕会发送给DBA. on是开，off是关，配置为其他值均会被archer认为不开启邮件功能
 MAIL_ON_OFF='on'
 WECHAT_ON_OFF='on'
+DINGTALK_ON_OFF='off'
 
 MAIL_REVIEW_SMTP_SERVER='smtp.huored.com'
 MAIL_REVIEW_SMTP_PORT=587
