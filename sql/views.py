@@ -575,7 +575,10 @@ def queryora(request):
             strRow = []
             for i in range(0,len(row)):
                 if i in crtList:
-                    strRow.append(prpCryptor.encrypt(row[i]))
+                    try:
+                        strRow.append(prpCryptor.encrypt(row[i]))
+                    except Exception as err:
+                        strRow.append('$xxxxxxxxxxxxxx$')
                 else:
                     try:
                         strRow.append(str(row[i]))
