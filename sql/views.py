@@ -319,16 +319,7 @@ def _mapResultSt(x):
 #展示SQL工单详细内容，以及可以人工审核，审核通过即可执行
 def detail(request, workflowId):
     PAGE_LIMIT = 12
-    pageNo = 0
 
-    if 'pageNo' in request.GET:
-        pageNo = min(int(request.GET['pageNo']),pages-1)
-    else:
-        pageNo = 0
-    if pageNo < 0:
-        pageNo = 0
-    offset = pageNo * PAGE_LIMIT
-    limit = offset + PAGE_LIMIT
 
     loginUser = request.session.get('login_username', False)
     loginUserObj = users.objects.get(username = loginUser)
@@ -345,6 +336,14 @@ def detail(request, workflowId):
         else:
             listResult=[]
     pages = math.ceil(len(listResult)/PAGE_LIMIT)
+    if 'pageNo' in request.GET:
+        pageNo = min(int(request.GET['pageNo']),pages-1)
+    else:
+        pageNo = 0
+    if pageNo < 0:
+        pageNo = 0
+    offset = pageNo * PAGE_LIMIT
+    limit = offset + PAGE_LIMIT
     pageRange = range(pageNo,pageNo+min(4,pages-pageNo)+1)
     listContent = listResult[offset:limit]
     try:
