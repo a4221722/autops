@@ -373,23 +373,23 @@ def execute(request):
             context = {'errMsg': '已经在执行'}
             return render(request, 'error.html', context)
 
-    #clusterName = workflowDetail.cluster_name
-    try:
-        listAllReviewMen = json.loads(workflowDetail.review_man)
-    except ValueError:
-        listAllReviewMen = (workflowDetail.review_man, )
+        #clusterName = workflowDetail.cluster_name
+        try:
+            listAllReviewMen = json.loads(workflowDetail.review_man)
+        except ValueError:
+            listAllReviewMen = (workflowDetail.review_man, )
 
-    #服务器端二次验证，正在执行人工审核动作的当前登录用户必须为审核人. 避免攻击或被接口测试工具强行绕过
-    loginUser = request.session.get('login_username', False)
-    if loginUser is None or loginUser not in listAllReviewMen:
-        context = {'errMsg': '当前登录用户不是审核人，请重新登录.'}
-        return render(request, 'error.html', context)
+        #服务器端二次验证，正在执行人工审核动作的当前登录用户必须为审核人. 避免攻击或被接口测试工具强行绕过
+        loginUser = request.session.get('login_username', False)
+        if loginUser is None or loginUser not in listAllReviewMen:
+            context = {'errMsg': '当前登录用户不是审核人，请重新登录.'}
+            return render(request, 'error.html', context)
 
 
-    #将流程状态修改为执行中，并更新reviewok_time字段
-    workflowDetail.status = Const.workflowStatus['executing']
-    workflowDetail.reviewok_time = getNow()
-    workflowDetail.save()
+        #将流程状态修改为执行中，并更新reviewok_time字段
+        workflowDetail.status = Const.workflowStatus['executing']
+        workflowDetail.reviewok_time = getNow()
+        workflowDetail.save()
 
 
     (finalStatus, finalList) = daoora.executeFinal(workflowDetail)
