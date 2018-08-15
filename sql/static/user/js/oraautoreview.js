@@ -323,8 +323,14 @@ function fillQueryOraPage() {
 }
 function execSql() {
 	$('#execSqlBtn').on('click',function() {
-		var sql = window.getSelection().toString() || $('#sql_content').val();
-		if(sql.trim() == '') {
+	var sql;
+	if(window.getSelection().toString() && $(window.getSelection().focusNode).find('#sql_content').length>0){
+		sql= window.getSelection().toString();
+	}else {
+sql= $('#sql_content').val();
+	}
+
+		if(sql.toString().trim() == '') {
 			alert('sql不能为空');
 		}else {
 			$('#real_sql_content').val(sql);
