@@ -215,7 +215,7 @@
 		</table>
 		<div style="text-align:center;">
 			<ul class="pagination" style="display:inline-block;">
-					<!--{% if pages >= 5 %}i-->
+				{% if pages >= 5 %}
 				<li>
 					<a href="?pageNo={{pageNo|add:"-1"}}">前一页</a>
 				</li>
@@ -231,9 +231,8 @@
 				<li>
 					<a href="?pageNo={{pageNo|add:"1"}}">后一页</a>
 				</li>
-				<!--	 {% endif %}  -->
+				{% endif %}  
 
-				 <!--
 				{% if pages < 5 and pages > 1 %}
 				 
 				<li id="last_page">
@@ -242,7 +241,7 @@
 				<li>
 					<a href="?pageNo={{pageNo|add:"1"}}">后一页</a>
 				</li>
-				{% endif %} -->
+				{% endif %} 
 
 			</ul>
 		</div>
