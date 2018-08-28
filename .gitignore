@@ -8,3 +8,4 @@ awr/*.html
 __pycache__/*
 archer/settings.py
 archer/settings_dev.py
+archer/archer.db
