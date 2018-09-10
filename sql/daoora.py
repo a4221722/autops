@@ -490,12 +490,18 @@ class DaoOra(object):
                         return finalStatus,msg,headerList,queryResult
             try:
                 cr.execute(sqlContent)
-            except Exception as e:
+                headerList = [row[0] for row in cr.description]
+                queryResult = cr.fetchall()
+            except UnicodeDecodeError as ue:
+                conn = cx_Oracle.connect(self.standbyUser,self.standbyPassword,oraLink,encoding='utf8')
+                cr = conn.cursor()
+                cr.execute(sqlContent)
+                queryResult = cr.fetchall()
+            except InterfaceError as e:
                 finalStatus = '执行异常'
                 msg = str(e)
             else:
-                headerList = [row[0] for row in cr.description]
-                queryResult = cr.fetchall()
+                pass
         else:
             finalStatus = '不支持的操作'
             msg = "不支持的操作,该页面仅支持查询操作!"
