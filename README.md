@@ -42,5 +42,5 @@ python manage.py runserver 0.0.0.0:8080
 
 #启动celery
 ````
-python manage.py celery worker --loglevel=info --autoreload -B
+python manage.py celery worker --loglevel=info 
 ````
