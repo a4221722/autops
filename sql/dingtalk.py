@@ -7,7 +7,7 @@ import sys
 import os
 
 headers = {'Content-Type': 'application/json;charset=utf-8'}
-api_url = "https://oapi.dingtalk.com/robot/send?access_token=4e83ee9e7de47bf8f454a0e6fa272673052e1ddf37808b9357d53c3662a0b4bc"
+api_url = "https://oapi.dingtalk.com/robot/send?access_token=xxx"
 
 def dingAlert(text,mobile):
     json_text= {
