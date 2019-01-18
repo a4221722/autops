@@ -8,10 +8,10 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 # 禁用安全请求警告
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-Corpid = "ww490aca0759b3b53f"                                                   # CorpID是企业号的标识
-Secret = "i2pS69cwYTSssqgqkNtN8ptVBHuX670O3mS4aNlTRFk"                          # Secret是管理组凭证密钥
+Corpid = ""                                                   # CorpID是企业号的标识
+Secret = ""                          # Secret是管理组凭证密钥
 #Tagid = "1"                                                                    # 通讯录标签ID
-Agentid = "1000002"
+Agentid = ""
 
 class WechatAlert():
 
